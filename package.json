@@ -1,0 +1,30 @@
+{
+  "name": "llm_service",
+  "version": "1.0.0",
+  "description": "LLM service for quronest",
+  "homepage": "https://github.com/Quronest/llm_service#readme",
+  "bugs": {
+    "url": "https://github.com/Quronest/llm_service/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Quronest/llm_service.git"
+  },
+  "license": "ISC",
+  "author": "quronest",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0",
+    "nodemon": "^3.1.14"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1"
+  }
+}
