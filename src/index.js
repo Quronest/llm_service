@@ -9,7 +9,7 @@ dotenv.config({
 })
 
 app.on("error", (error) => {
-    log.info("ERROR: ", error);
+    log.error("ERROR: ", error);
     throw error;
 })
 app.listen(process.env.PORT, () => {
