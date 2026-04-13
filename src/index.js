@@ -1,6 +1,6 @@
 import dotenv from "dotenv"
 import { app } from "./app.js"
-import { createModuleLogger } from "../utils/logger.js";
+import { createModuleLogger } from "./utils/logger.js";
 
 const log = createModuleLogger();
 
