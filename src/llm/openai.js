@@ -1,9 +1,9 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { env } from "../config/env.js";
 
-export const llm = new ChatOpenAI({
-  apiKey: env.openAIApiKey,
+const createOpenAILLM = () => new ChatOpenAI({
   model: "gpt-4o-mini",
-  temperature: 0,
-  timeout: env.timeout,
+  temperature: 0.7,
+  apiKey: process.env.OPENAI_API_KEY,
 });
+
+export default createOpenAILLM;

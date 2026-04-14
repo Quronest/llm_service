@@ -1,11 +1,10 @@
 import { z } from "zod";
-import { llm } from "../llm/openai.js";
 
 const schema = z.object({
   summary: z.string(),
 });
 
-export async function summarize(text) {
+export async function summarize(text, llm) {
   const structured = llm.withStructuredOutput(schema);
 
   return structured.invoke(

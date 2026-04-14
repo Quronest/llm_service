@@ -1,32 +1,35 @@
 
 import { summarize } from "../chains/summarize.js";
 import { createModuleLogger } from "../utils/logger.js";
+import { getLLM } from "../llm/index.js";
 
 const log = createModuleLogger();
 
 export const summarizeText = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, provider } = req.body;
 
-    if (!text) {
+    if (!text || typeof text !== "string" || !text.trim()) {
       return res.status(400).json({
-        error: "Text is required",
+        success: false,
+        message: "Text is required",
       });
     }
 
-    log.info("Summarizing text...");
-    const result = await summarize(text);
+    const llm = getLLM(provider || "gemini");
 
-    return res.status(200).json({
+    const response = await summarize(text.trim(), llm);
+
+    res.status(200).json({
       success: true,
-      data: result,
+      provider: provider || "gemini",
+      result: response.summary,
     });
 
   } catch (error) {
-    log.error("Error in summarize endpoint:", error);
-
-    return res.status(500).json({
-      error: "Failed to summarize",
+    log.error(error.message);
+    res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
