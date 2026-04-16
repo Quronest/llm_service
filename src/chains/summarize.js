@@ -1,13 +1,27 @@
 import { z } from "zod";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { summarizePrompt } from "../prompts/summarize.prompt.js";
 
+// Define schema
 const schema = z.object({
   summary: z.string(),
 });
 
-export async function summarize(text, llm) {
-  const structured = llm.withStructuredOutput(schema);
+// parser initialization:
+const parser = StructuredOutputParser.fromZodSchema(schema);
 
-  return structured.invoke(
-    `Summarize the following:\n\n${text}`
-  );
-}
+// Create chain
+export const createSummarizeChain = (llm) => {
+  return RunnableSequence.from([
+    summarizePrompt,
+    llm,
+    parser, // this enforces Zod schema
+  ]);
+};
+
+// Execute summarize chain
+export const summarize = async (text, llm) => {
+  const chain = createSummarizeChain(llm);
+  return chain.invoke({ text });
+};

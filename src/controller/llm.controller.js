@@ -1,36 +1,39 @@
-
 import { summarize } from "../chains/summarize.js";
 import { createModuleLogger } from "../utils/logger.js";
-import { getLLM } from "../llm/index.js";
+import createGeminiLLM from "../llm/gemini.js";
+import createOpenaiLLM from "../llm/openai.js";
+import {ApiResponse} from "../utils/ApiResponse.js";
+import {ApiError} from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const log = createModuleLogger();
 
-export const summarizeText = async (req, res) => {
-  try {
-    const { text, provider } = req.body;
+export const summarizeText = asyncHandler(async (req, res) => {
+  const { text, provider } = req.body;
 
-    if (!text || typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Text is required",
-      });
-    }
-
-    const llm = getLLM(provider || "gemini");
-
-    const response = await summarize(text.trim(), llm);
-
-    res.status(200).json({
-      success: true,
-      provider: provider || "gemini",
-      result: response.summary,
-    });
-
-  } catch (error) {
-    log.error(error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  // validation
+  if (!text || typeof text !== "string" || !text.trim()) {
+    throw new ApiError(400, "Text is required");
   }
-};
+
+  // prefer Gemini by default
+  const llm =
+    provider === "openai"
+      ? createOpenaiLLM()
+      : createGeminiLLM();
+
+  // call chain
+  const response = await summarize(text.trim(), llm);
+
+  // ✅ success response
+  return res.status(200).json(
+    new ApiResponse(
+      200, 
+      {
+        provider: provider || "gemini",
+        result: response.summary,
+      }, 
+      "Summary generated successfully"
+    )
+  );
+});
