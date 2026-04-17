@@ -5,19 +5,19 @@ class ApiError extends Error {
     errors = [],
     stack = ""
   ) {
-    super(message)
+    super(message);
 
-    this.statusCode = statusCode
-    this.data = null
-    this.success = false
-    this.errors = errors
+    this.statusCode = statusCode;
+    this.data = null;
+    this.success = false;
+    this.errors = errors;
 
     if (stack) {
-      this.stack = stack
+      this.stack = stack;
     } else {
-      Error.captureStackTrace(this, this.constructor)
+      Error.captureStackTrace(this, this.constructor);
     }
   }
 }
 
-export { ApiError }
+export { ApiError };

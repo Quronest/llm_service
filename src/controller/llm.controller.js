@@ -1,15 +1,11 @@
 import { summarize } from "../chains/summarize.js";
-import { createModuleLogger } from "../utils/logger.js";
 import createGeminiLLM from "../llm/gemini.js";
-import createOpenaiLLM from "../llm/openai.js";
-import {ApiResponse} from "../utils/ApiResponse.js";
-import {ApiError} from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const log = createModuleLogger();
-
 export const summarizeText = asyncHandler(async (req, res) => {
-  const { text, provider } = req.body;
+  const { text } = req.body;
 
   // validation
   if (!text || typeof text !== "string" || !text.trim()) {
@@ -17,20 +13,17 @@ export const summarizeText = asyncHandler(async (req, res) => {
   }
 
   // prefer Gemini by default
-  const llm =
-    provider === "openai"
-      ? createOpenaiLLM()
-      : createGeminiLLM();
+  const llm = createGeminiLLM();
 
   // call chain
   const response = await summarize(text.trim(), llm);
 
-  // ✅ success response
+  // success response
   return res.status(200).json(
     new ApiResponse(
       200, 
       {
-        provider: provider || "gemini",
+        llm: "gemini",
         result: response.summary,
       }, 
       "Summary generated successfully"

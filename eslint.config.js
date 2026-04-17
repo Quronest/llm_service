@@ -7,6 +7,9 @@ export default [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
+      globals: {
+        process: "readonly",
+      },
     },
     rules: {
       // General
