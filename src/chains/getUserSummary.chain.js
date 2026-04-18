@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-import { getGroupPrompt } from "../prompts/getGroup.prompt.js";
+import { getGroupPrompt } from "../prompts/userSummary.prompt.js";
 
-const userGroupingSchema = z.object({
+const userGroupSchema = z.object({
   group: z.enum(["A", "B", "C"]),
   summary: z.string(),
 });
 
-const parser = StructuredOutputParser.fromZodSchema(userGroupingSchema);
+const parser = StructuredOutputParser.fromZodSchema(userGroupSchema);
 
 export const createGetUserGroupChain = (llm) => {
   return RunnableSequence.from([

@@ -1,6 +1,6 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { getGroup } from "../chains/getGroup.js";
+import { getGroup } from "../chains/getUserSummary.chain.js";
 import createGeminiLLM from "../llm/gemini.js";
 
 export const getUserGroup = asyncHandler(async (req, res) => {

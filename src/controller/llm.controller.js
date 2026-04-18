@@ -1,4 +1,4 @@
-import { summarize } from "../chains/summarize.js";
+import { summarize } from "../chains/summarize.chain.js";
 import createGeminiLLM from "../llm/gemini.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
