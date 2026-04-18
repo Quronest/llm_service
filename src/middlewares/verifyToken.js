@@ -1,31 +1,55 @@
-import jwt from 'jsonwebtoken';
-import { ApiError } from '../utils/ApiError.js';
-import { asyncHandler } from '../utils/asyncHandler.js';
+import jwt from "jsonwebtoken";
+import { ApiError } from "../utils/ApiError.js";
+import fs from "fs";
+import { createModuleLogger } from "../utils/logger.js";
+import { StatusCodes } from "http-status-codes";
 
-const PUBLIC_KEY = process.env.PUBLIC_KEY.replace(/\\n/g, '\n');
+const log = createModuleLogger(import.meta.url);
 
-export const verifyToken = asyncHandler(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
+function getPublicKey() {
+  try {
+    // Read the file as a string
+    const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_PATH, "utf8");
 
-  // No token
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new ApiError(401, 'Unauthorized: No token provided');
+    return publicKey;
+  } catch (error) {
+    log.error("Error reading public key:", error.message);
+    throw error;
   }
+}
 
-  const token = authHeader.split(' ')[1];
+export const verifyToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
 
-  // Verify RSA token
-  const decoded = jwt.verify(token, PUBLIC_KEY, {
-    algorithms: ['RS256'],
-  });
+    // No token
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new ApiError(401, "Unauthorized: No token provided");
+    }
 
-  // Invalid payload type
-  if (decoded.type !== 'service') {
-    throw new ApiError(403, 'Forbidden: Invalid token type');
+    const token = authHeader.split(" ")[1];
+    const PUBLIC_KEY = await getPublicKey();
+    log.debug("Key - " + PUBLIC_KEY);
+
+    // Verify RSA token
+    const decoded = jwt.verify(token, PUBLIC_KEY, {
+      algorithms: ["RS256"],
+    });
+
+    // Invalid payload type
+    if (decoded.type !== "service") {
+      throw new ApiError(403, "Forbidden: Invalid token type");
+    }
+
+    next();
+  } catch (error) {
+    log.error(error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Token Validation Failed.",
+    );
   }
-
-  // attach decoded payload
-  req.user = decoded;
-
-  next();
-});
+};

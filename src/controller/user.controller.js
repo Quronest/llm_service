@@ -1,23 +1,21 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { getGroup } from "../chains/getUserSummary.chain.js";
-import createGeminiLLM from "../llm/gemini.js";
+import { generateUserSummary } from "../chains/userSummary.chain.js";
+import geminiLLM from "../llm/gemini.llm.js";
+import { StatusCodes } from "http-status-codes";
 
-export const getUserGroup = asyncHandler(async (req, res) => {
-    
-  const llm = createGeminiLLM();
+export const getUserSummary = asyncHandler(async (req, res) => {
+  const llm = geminiLLM();
 
-  const response = await getGroup(req.body, llm);
+  const response = await generateUserSummary(req.body, llm);
 
-  return res.status(200).json(
-    new ApiResponse(
-      200, 
-      {
-        group: response.group,
-        summary: response.summary,
-      }, 
-      "Group and summary generated successfully"
-    )
-  );
-
+  return res
+    .status(StatusCodes.OK)
+    .json(
+      new ApiResponse(
+        StatusCodes.OK,
+        response,
+        "Group and summary generated successfully",
+      ),
+    );
 });

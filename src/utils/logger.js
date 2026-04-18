@@ -1,4 +1,6 @@
 import { createLogger, format, transports } from "winston";
+import { fileURLToPath } from "url";
+import path from "path";
 
 const { combine, timestamp, printf } = format;
 
@@ -10,17 +12,16 @@ const logFormat = printf(({ level, message, timestamp, module }) => {
 // Core logger
 const logger = createLogger({
   level: "info",
-  format: combine(
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    logFormat
-  ),
-  transports: [
-    new transports.Console(),
-  ],
+  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), logFormat),
+  transports: [new transports.Console()],
 });
 
-// Module-based wrapper
-export const createModuleLogger = (moduleName) => {
+export const createModuleLogger = (metaUrl) => {
+  const __filename = fileURLToPath(metaUrl);
+  const moduleName = path.basename(__filename);
+
+  const isDebug = process.env.APP_DEBUG === "true";
+
   return {
     info: (message) => logger.info(message, { module: moduleName }),
     error: (message) => logger.error(message, { module: moduleName }),
@@ -29,5 +30,4 @@ export const createModuleLogger = (moduleName) => {
   };
 };
 
-// Optional: export base logger too
 export default logger;

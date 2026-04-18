@@ -1,6 +1,6 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
-const createGeminiLLM = () => {
+const geminiLLM = () => {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     throw new Error("GOOGLE_API_KEY is not set in environment variables");
@@ -12,4 +12,4 @@ const createGeminiLLM = () => {
   });
 };
 
-export default createGeminiLLM;
+export default geminiLLM;

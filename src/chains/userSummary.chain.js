@@ -3,23 +3,24 @@ import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { getGroupPrompt } from "../prompts/userSummary.prompt.js";
 
-const userGroupSchema = z.object({
+const userSummarySchema = z.object({
   group: z.enum(["A", "B", "C"]),
   summary: z.string(),
 });
 
-const parser = StructuredOutputParser.fromZodSchema(userGroupSchema);
+const parser = StructuredOutputParser.fromZodSchema(userSummarySchema);
 
-export const createGetUserGroupChain = (llm) => {
+export const createUserSummaryChain = (llm) => {
   return RunnableSequence.from([
     getGroupPrompt,
-    llm,
+    llm.withConfig({
+      response_format: { type: "json_object" }, // Force JSON output
+    }),
     parser,
   ]);
 };
 
-
-export const getGroup = async (data, llm) => {
+export const generateUserSummary = async (data, llm) => {
   const {
     institute,
     grade,
@@ -31,7 +32,9 @@ export const getGroup = async (data, llm) => {
     experience,
     personalDescription,
   } = data;
-  const chain = createGetUserGroupChain(llm);
+
+  const chain = createUserSummaryChain(llm);
+
   return chain.invoke({
     institute,
     grade,

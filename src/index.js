@@ -6,9 +6,9 @@ dotenv.config({
   path: "./.env.development",
 });
 
-const log = createModuleLogger();
+const log = createModuleLogger(import.meta.url);
 
-const port = Number(process.env.PORT || 4000);
+const port = Number(process.env.PORT);
 
 const server = app.listen(port, () => {
   log.info(`Server is running at port ${port}`);

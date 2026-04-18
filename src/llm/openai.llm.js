@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 
-const createOpenaiLLM = () => {
+const openaiLLM = () => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not set in environment variables");
@@ -12,4 +12,4 @@ const createOpenaiLLM = () => {
   });
 };
 
-export default createOpenaiLLM;
+export default openaiLLM;

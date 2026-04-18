@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { getUserGroup } from "../controller/user.controller.js";
+import { getUserSummary } from "../controller/user.controller.js";
+import { verifyToken } from "../middlewares/verifyToken.js";
 
 const router = Router();
 
-router.route("/get-Group").post(getUserGroup);
+router.route("/generate-summary").post(verifyToken, getUserSummary);
 
 export default router;

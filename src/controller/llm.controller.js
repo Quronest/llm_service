@@ -1,5 +1,5 @@
 import { summarize } from "../chains/summarize.chain.js";
-import createGeminiLLM from "../llm/gemini.js";
+import geminiLLM from "../llm/gemini.llm.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -13,7 +13,7 @@ export const summarizeText = asyncHandler(async (req, res) => {
   }
 
   // prefer Gemini by default
-  const llm = createGeminiLLM();
+  const llm = geminiLLM();
 
   // call chain
   const response = await summarize(text.trim(), llm);
