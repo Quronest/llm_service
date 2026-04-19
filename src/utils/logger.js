@@ -9,9 +9,13 @@ const logFormat = printf(({ level, message, timestamp, module }) => {
   return `${timestamp} | ${module || "app"} | ${level.toUpperCase()} | ${message}`;
 });
 
+// Determine log level based on debug mode
+const isDebugMode = process.env.APP_DEBUG === "true";
+const logLevel = isDebugMode ? "debug" : "info";
+
 // Core logger
 const logger = createLogger({
-  level: "info",
+  level: logLevel,
   format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), logFormat),
   transports: [new transports.Console()],
 });
@@ -19,8 +23,6 @@ const logger = createLogger({
 export const createModuleLogger = (metaUrl) => {
   const __filename = fileURLToPath(metaUrl);
   const moduleName = path.basename(__filename);
-
-  const isDebug = process.env.APP_DEBUG === "true";
 
   return {
     info: (message) => logger.info(message, { module: moduleName }),
