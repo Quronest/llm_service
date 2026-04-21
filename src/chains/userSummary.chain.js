@@ -5,6 +5,7 @@ import { getGroupPrompt } from "../prompts/userSummary.prompt.js";
 
 const userSummarySchema = z.object({
   group: z.enum(["A", "B", "C"]),
+  phase: z.enum(["1", "2", "3"]),
   summary: z.string(),
 });
 
@@ -21,17 +22,18 @@ export const createUserSummaryChain = (llm) => {
 };
 
 export const generateUserSummary = async (data, llm) => {
+  const { academic_data = {}, personal_data = {} } = data;
+
   const {
     institute,
     grade,
     course,
     courseDescription,
-    interestedDomains,
-    skills,
-    primaryGoal,
-    experience,
-    personalDescription,
-  } = data;
+    interestedDomains = [],
+    skills = [],
+  } = academic_data;
+
+  const { primaryGoal, experience, personalDescription } = personal_data;
 
   const chain = createUserSummaryChain(llm);
 
