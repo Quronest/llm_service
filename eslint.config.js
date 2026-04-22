@@ -58,7 +58,6 @@ export default [
   {
     ignores: [
       "node_modules/**",
-      "dist/**",
       "build/**",
       ".git/**",
       "coverage/**",

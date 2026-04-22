@@ -20,16 +20,23 @@ function getPublicKey() {
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization || "";
+    const rawHeader = authHeader.trim();
 
     // No token
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!rawHeader) {
       throw new ApiError(401, "Unauthorized: No token provided");
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = rawHeader.toLowerCase().startsWith("bearer ")
+      ? rawHeader.slice(7).trim()
+      : rawHeader;
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized: No token provided");
+    }
+
     const PUBLIC_KEY = await getPublicKey();
-    log.debug("Key - " + PUBLIC_KEY);
 
     // Verify RSA token
     const decoded = jwt.verify(token, PUBLIC_KEY, {
@@ -43,13 +50,21 @@ export const verifyToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    log.error(error);
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Token Validation Failed.",
-    );
+    const statusCode =
+      error instanceof ApiError
+        ? error.statusCode
+        : StatusCodes.INTERNAL_SERVER_ERROR;
+
+    const message =
+      error instanceof ApiError
+        ? error.message
+        : "Token Validation Failed.";
+
+    log.error(message);
+
+    return res.status(statusCode).json({
+      success: false,
+      message,
+    });
   }
 };
