@@ -8,25 +8,25 @@ import { StatusCodes } from "http-status-codes";
 export const getUserSummary = asyncHandler(async (req, res) => {
   const body = req.body;
 
-  // Separate academic and personal data from flat structure
+  // Separate academic and personal data from request
   const academic_data = {
-    institute: body.institute,
     grade: body.grade,
     course: body.course,
-    courseDescription: body.courseDescription,
-    interestedDomains: body.interestedDomains || [],
-    skills: body.skills || [],
+    description: body.description,
+    institute_name: body.institute_name,
   };
-
+  
   const personal_data = {
-    primaryGoal: body.primaryGoal,
+    skills: body.skills || [],
     experience: body.experience,
-    personalDescription: body.personalDescription,
+    description: body.description,
+    primary_goal: body.primary_goal,
+    interested_domains: body.interested_domains || [],
   };
 
   // Validate that required fields exist
-  if (!academic_data.institute || !personal_data.primaryGoal) {
-    throw new ApiError(400, "institute and primaryGoal are required fields");
+  if (!academic_data.institute_name || !personal_data.primary_goal) {
+    throw new ApiError(400, "institute_name and primary_goal are required fields");
   }
 
   const llm = geminiLLM();
@@ -39,7 +39,7 @@ export const getUserSummary = asyncHandler(async (req, res) => {
       new ApiResponse(
         StatusCodes.OK,
         response,
-        "Group and summary generated successfully",
+        "User summary generated successfully",
       ),
     );
 });

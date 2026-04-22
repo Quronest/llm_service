@@ -91,17 +91,16 @@ Your task is to analyze a user's academic and personal profile and classify them
 
 ### User Data:
 
-Institute: {institute}  
+Institute: {institute_name}  
 Grade: {grade}  
 Course: {course}  
-Course Description: {courseDescription}  
+Description: {description}  
 
-Interested Domains: {interestedDomains}  
+Interested Domains: {interested_domains}  
 Skills: {skills}  
 
-Primary Goal: {primaryGoal}  
+Primary Goal: {primary_goal}  
 Experience: {experience}  
-Personal Description: {personalDescription}  
 
 ---
 
