@@ -4,8 +4,8 @@ import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { getGroupPrompt } from "../prompts/userSummary.prompt.js";
 
 const userSummarySchema = z.object({
-  group: z.enum(["A", "B", "C"]),
-  phase: z.enum(["1", "2", "3"]),
+  group: z.enum(["GROUP_A", "GROUP_B", "GROUP_C"]),
+  phase: z.enum(["PHASE_1", "PHASE_2", "PHASE_3"]),
   summary: z.string(),
 });
 

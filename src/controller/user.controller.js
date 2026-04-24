@@ -1,4 +1,3 @@
-import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { generateUserSummary } from "../chains/userSummary.chain.js";
@@ -31,13 +30,5 @@ export const getUserSummary = asyncHandler(async (req, res) => {
     llm,
   );
 
-  return res
-    .status(StatusCodes.OK)
-    .json(
-      new ApiResponse(
-        StatusCodes.OK,
-        response,
-        "User summary generated successfully",
-      ),
-    );
+  return res.status(StatusCodes.OK).json(response);
 });

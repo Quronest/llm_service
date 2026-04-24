@@ -3,7 +3,7 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 export const getGroupPrompt = ChatPromptTemplate.fromTemplate(`
 You are an expert career evaluator.
 
-Your task is to analyze a user's academic and personal profile and classify them into one of three groups: A, B, or C.
+Your task is to analyze a user's academic and personal profile and classify them into one of three groups: GROUP_A, GROUP_B, or GROUP_C.
 
 ---
 
@@ -112,13 +112,13 @@ Experience: {experience}
    - strength of skills (weak, moderate, or strong)
    - presence of real-world experience (none, small projects, or internship/work)
 
-2. Assign ONLY one GROUP: A, B, or C (based on overall profile)
+2. Assign ONLY one GROUP: GROUP_A, GROUP_B, or GROUP_C (based on overall profile)
 
-3. Determine the PHASE within that group: 1, 2, or 3
+3. Determine the PHASE within that group: PHASE_1, PHASE_2, or PHASE_3
    - Read the phase definitions carefully and match to the user's current state
-   - Phase 1 = Early/foundational stage
-   - Phase 2 = Intermediate/independent stage
-   - Phase 3 = Advanced/experienced stage
+   - PHASE_1 = Early/foundational stage
+   - PHASE_2 = Intermediate/independent stage
+   - PHASE_3 = Advanced/experienced stage
 
 4. Provide a concise summary explaining the classification
 
