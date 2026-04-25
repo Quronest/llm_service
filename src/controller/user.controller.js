@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { generateUserSummary } from "../chains/userSummary.chain.js";
 import geminiLLM from "../llm/gemini.llm.js";
@@ -8,35 +9,29 @@ import { createModuleLogger } from "../utils/logger.js";
 const log = createModuleLogger(import.meta.url);
 
 export const getUserSummary = asyncHandler(async (req, res) => {
-  const body = req.body;
+  const { academic_data = {}, personal_data = {} } = req.body || {};
 
-  // Separate academic and personal data from request
-  const academic_data = body.academic_data;
-
-  const personal_data = body.personal_data;
-
-  // Validate that required fields exist
-  if (!academic_data.institute_name || !personal_data.primary_goal) {
-    throw new ApiError(
-      400,
-      "institute_name and primary_goal are required fields",
-    );
+  // ✅ Safe validation
+  if (!academic_data.institute_name) {
+    throw new ApiError(400, "institute_name is required");
   }
 
+  if (!personal_data.primary_goal) {
+    throw new ApiError(400, "primary_goal is required");
+  }
+  log.info("ready llm...");
   const llm = geminiLLM();
-
+  log.info("generating usersummary...");
   const response = await generateUserSummary(
-    { academic_data, personal_data },
-    llm,
-  );
-
-  return res
-    .status(StatusCodes.OK)
-    .json(
-      new ApiResponse(
-        StatusCodes.OK,
-        response,
-        "User summary generated successfully",
-      ),
+      { academic_data, personal_data },
+      llm
     );
+    
+  return res.status(StatusCodes.OK).json(
+    new ApiResponse(
+      StatusCodes.OK,
+      response,
+      "User summary generated successfully"
+    )
+  );
 });

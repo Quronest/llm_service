@@ -1,6 +1,10 @@
 import { z } from "zod";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
+
+import { groupPhaseBasePrompt } from "../prompts/groupPhaseBase.prompt.js";
+import { userContextPrompt } from "../prompts/userContextBase.prompt.js";
 import { taskPrompt } from "../prompts/task.prompt.js";
 
 const taskSchema = z.object({
@@ -24,9 +28,17 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 
+const fullPrompt = ChatPromptTemplate.fromMessages([
+  ...groupPhaseBasePrompt.promptMessages,
+  ...userContextPrompt.promptMessages,
+  ...taskPrompt.promptMessages,
+]);
+
 export const createTasksChain = (llm) => {
   return RunnableSequence.from([
-    taskPrompt,
+    fullPrompt.partial({
+      format_instructions: parser.getFormatInstructions(),
+    }),
     llm.withConfig({
       response_format: { type: "json_object" },
     }),
@@ -52,18 +64,30 @@ export const generateTasks = async (data, llm) => {
     : [];
 
   return chain.invoke({
+    // group
     group,
     phase,
 
-    grade: academic_data?.grade ?? "",
-    course: academic_data?.course ?? "",
-    description: academic_data?.description ?? "",
-    institute_name: academic_data?.institute_name ?? "",
+    // academic
+    grade: academic_data?.grade ?? "Not specified",
+    course: academic_data?.course ?? "Not specified",
+    description: academic_data?.description ?? "Not specified",
+    institute_name: academic_data?.institute_name ?? "Not specified",
 
-    skills: skills.join(", "),
-    experience: personal_data?.experience ?? "",
-    primary_goal: personal_data?.primary_goal ?? "",
-    interested_domains: interestedDomains.join(", "),
-    format_instructions: parser.getFormatInstructions(),
+    // personal
+    skills: skills.length ? skills.join(", ") : "None",
+    experience: personal_data?.experience ?? "No experience",
+    primary_goal: personal_data?.primary_goal ?? "Not specified",
+    interested_domains: interestedDomains.length
+      ? interestedDomains.join(", ")
+      : "None",
+
+    // journey
+    current_Group: data?.current_Group ?? group,
+    current_Phase: data?.current_Phase ?? phase,
+    current_Day: data?.current_Day ?? 1,
+    streak_Days: data?.streak_Days ?? 0,
+    total_Active_Days: data?.total_Active_Days ?? 0,
+    last_Active_At: data?.last_Active_At ?? "N/A",
   });
 };
