@@ -8,6 +8,7 @@ const taskSchema = z.object({
   title: z.string(),
   type: z.enum(["Reading", "Practice", "Test"]),
   description: z.string(),
+  expectedCompletionTime: z.string().min(1),
 });
 
 const daySchema = z.object({

@@ -30,5 +30,13 @@ export const getUserSummary = asyncHandler(async (req, res) => {
     llm,
   );
 
-  return res.status(StatusCodes.OK).json(response);
+  return res
+    .status(StatusCodes.OK)
+    .json(
+      new ApiResponse(
+        StatusCodes.OK,
+        response,
+        "User summary generated successfully",
+      ),
+    );
 });

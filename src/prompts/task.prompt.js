@@ -63,6 +63,7 @@ Phases indicate progression within the group:
    - Realistic (1–3 hours total per day)
    - Relevant to user's goal and skills
    - Slightly increasing in difficulty over 7 days
+  - Include "expectedCompletionTime" for every task (for example: "30 minutes", "1 hour", "15 minutes")
 
 ---
 
@@ -83,7 +84,8 @@ Return ONLY valid JSON. No extra text.
           "task": 1,
           "title": "Task title",
           "type": "Reading | Practice | Test",
-          "description": "Detailed explanation of what to do"
+          "description": "Detailed explanation of what to do",
+          "expectedCompletionTime": "45 minutes"
         }}
       ]
     }}
@@ -100,6 +102,7 @@ Return ONLY valid JSON. No extra text.
   - "Reading"
   - "Practice"
   - "Test"
+- Every task must include "expectedCompletionTime" as a non-empty string
 - Do NOT include any text outside JSON
 - Keep output clean and valid JSON only
 `);
