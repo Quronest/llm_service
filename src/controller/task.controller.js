@@ -5,7 +5,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const generateUserTasks = asyncHandler(async (req, res) => {
-  const { group, phase, academic_data, personal_data } = req.body;
+  // Extract journey_context alongside the others
+  const { group, phase, academic_data, personal_data, journey_context = {} } = req.body || {};
 
   if (!group || !phase) {
     throw new ApiError(400, "group and phase are required");
@@ -15,24 +16,23 @@ export const generateUserTasks = asyncHandler(async (req, res) => {
     throw new ApiError(400, "academic_data and personal_data are required");
   }
 
-  const data = {
-    group,
-    phase,
-    ...academic_data,
-    ...personal_data,
-  };
-
   const llm = geminiLLM();
 
-  const response = await generateTasks(data, llm);
+  // Pass the nested objects directly so the chain can destructure cleanly
+  const response = await generateTasks({
+    group,
+    phase,
+    academic_data,
+    personal_data,
+    journey_context
+  }, llm);
 
-  // ✅ Success response
   return res.status(200).json(
     new ApiResponse(
       200,
       {
         llm: "gemini",
-        plan: response.plan, // comes from Zod parser
+        plan: response.plan, 
       },
       "7-day task plan generated successfully"
     )

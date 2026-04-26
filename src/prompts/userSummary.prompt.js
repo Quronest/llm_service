@@ -1,6 +1,5 @@
-import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-export const userSummaryPrompt = ChatPromptTemplate.fromMessages([
+export const userSummaryMessages = [
   [
     "human",
     `### Role
@@ -21,6 +20,6 @@ Goal: {primary_goal}
 Experience: {experience}
 
 ### Output
-{format_instructions}`,
-  ],
-]);
+{format_instructions}`
+  ]
+];

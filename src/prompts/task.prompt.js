@@ -1,16 +1,24 @@
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-
-export const taskPrompt = ChatPromptTemplate.fromTemplate(`### Role of the AI
-
+export const taskMessages = [
+  [
+    "human",
+    `### Role of the AI
 You are an expert career mentor and learning path generator.
-
 You specialize in designing structured, practical, and progressive learning plans tailored to a user's current skill level, group, and phase.
 
 ---
 
-### Task Objective
+### User Profile
+**Academic:** {institute_name} | {grade} | {course}
+**Background:** {description}
+**Skills:** {skills}
+**Primary Goal:** {primary_goal}
+**Experience:** {experience}
+**Interested Domains:** {interested_domains}
 
-Generate a **7-day structured learning plan** for the user.
+---
+
+### Task Objective
+Generate a **7-day structured learning plan** for the user based on their profile, current group, and phase.
 
 The plan must:
 - Align with the user's **current group and phase**
@@ -63,7 +71,6 @@ Return ONLY valid JSON. No explanation, no extra text.
 {format_instructions}
 
 Example structure:
-
 {{
   "plan": [
     {{
@@ -95,4 +102,6 @@ Example structure:
   - "Test"
 - Every task must include "expectedCompletionTime"
 - Output must be valid JSON only
-- Do NOT include any text outside JSON`);
+- Do NOT include any text outside JSON`
+  ]
+];

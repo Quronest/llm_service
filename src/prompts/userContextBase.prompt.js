@@ -1,15 +1,14 @@
-import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-export const userContextPrompt = ChatPromptTemplate.fromMessages([
+export const userContextMessages = [
   [
     "system",
     `### User Journey Context:
 
-Current Group: {group}
-Current Phase: {phase}
+Current Group: {current_group}
+Current Phase: {current_phase}
 Current Day: {current_day}
 Streak Days: {streak_days}
 Total Active Days: {total_active_days}
-Last Active At: {last_active_at}`,
-  ],
-]);
+Last Active At: {last_active_at}`
+  ]
+];

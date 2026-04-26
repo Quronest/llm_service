@@ -1,3 +1,4 @@
+// user.controller.js
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -9,9 +10,10 @@ import { createModuleLogger } from "../utils/logger.js";
 const log = createModuleLogger(import.meta.url);
 
 export const getUserSummary = asyncHandler(async (req, res) => {
-  const { academic_data = {}, personal_data = {} } = req.body || {};
+  // Extract journey_context
+  const { academic_data = {}, personal_data = {}, journey_context = {} } = req.body || {};
 
-  // ✅ Safe validation
+  // Safe validation
   if (!academic_data.institute_name) {
     throw new ApiError(400, "institute_name is required");
   }
@@ -19,11 +21,14 @@ export const getUserSummary = asyncHandler(async (req, res) => {
   if (!personal_data.primary_goal) {
     throw new ApiError(400, "primary_goal is required");
   }
+  
   log.info("ready llm...");
   const llm = geminiLLM();
+  
   log.info("generating usersummary...");
   const response = await generateUserSummary(
-      { academic_data, personal_data },
+      // Pass the context down
+      { academic_data, personal_data, journey_context }, 
       llm
     );
     

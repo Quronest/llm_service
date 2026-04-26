@@ -2,10 +2,13 @@ import { z } from "zod";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { createModuleLogger } from "../utils/logger.js";
 
-import { groupPhaseBasePrompt } from "../prompts/groupPhaseBase.prompt.js";
-import { userContextPrompt } from "../prompts/userContextBase.prompt.js";
-import { taskPrompt } from "../prompts/task.prompt.js";
+import { groupPhaseBaseMessages } from "../prompts/groupPhaseBase.prompt.js";
+import { userContextMessages } from "../prompts/userContextBase.prompt.js";
+import { taskMessages } from "../prompts/task.prompt.js"; 
+
+const log = createModuleLogger(import.meta.url);
 
 const taskSchema = z.object({
   task: z.number(),
@@ -28,17 +31,22 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 
-const fullPrompt = ChatPromptTemplate.fromMessages([
-  ...groupPhaseBasePrompt.promptMessages,
-  ...userContextPrompt.promptMessages,
-  ...taskPrompt.promptMessages,
+// 1. Combine system instructions into a single block for Gemini
+const combinedSystemText = `
+${groupPhaseBaseMessages[0][1]}
+
+${userContextMessages[0][1]}
+`;
+
+// 2. Create the unified prompt
+const finalPrompt = ChatPromptTemplate.fromMessages([
+  ["system", combinedSystemText],
+  ...taskMessages,
 ]);
 
 export const createTasksChain = (llm) => {
   return RunnableSequence.from([
-    fullPrompt.partial({
-      format_instructions: parser.getFormatInstructions(),
-    }),
+    finalPrompt, 
     llm.withConfig({
       response_format: { type: "json_object" },
     }),
@@ -47,47 +55,37 @@ export const createTasksChain = (llm) => {
 };
 
 export const generateTasks = async (data, llm) => {
-  const group = data?.group;
-  const phase = data?.phase;
 
-  const academic_data = data?.academic_data ?? data;
-  const personal_data = data?.personal_data ?? data;
+  const { group, phase, academic_data = {}, personal_data = {}, journey_context = {} } = data;
 
+  log.info("creating tasks chain...");
   const chain = createTasksChain(llm);
 
-  const skills = Array.isArray(personal_data?.skills)
-    ? personal_data.skills
-    : [];
+  const skills = Array.isArray(personal_data.skills) ? personal_data.skills : [];
+  const interestedDomains = Array.isArray(personal_data.interested_domains) ? personal_data.interested_domains : [];
 
-  const interestedDomains = Array.isArray(personal_data?.interested_domains)
-    ? personal_data.interested_domains
-    : [];
+  log.info("Invoking tasks chain...");
+  return await chain.invoke({
+    group: group ?? "N/A",
+    phase: phase ?? "N/A",
 
-  return chain.invoke({
-    // group
-    group,
-    phase,
+    grade: academic_data.grade ?? "Not specified",
+    course: academic_data.course ?? "Not specified",
+    description: academic_data.description ?? "Not specified",
+    institute_name: academic_data.institute_name ?? "Not specified",
 
-    // academic
-    grade: academic_data?.grade ?? "Not specified",
-    course: academic_data?.course ?? "Not specified",
-    description: academic_data?.description ?? "Not specified",
-    institute_name: academic_data?.institute_name ?? "Not specified",
-
-    // personal
     skills: skills.length ? skills.join(", ") : "None",
-    experience: personal_data?.experience ?? "No experience",
-    primary_goal: personal_data?.primary_goal ?? "Not specified",
-    interested_domains: interestedDomains.length
-      ? interestedDomains.join(", ")
-      : "None",
+    experience: personal_data.experience ?? "No experience",
+    primary_goal: personal_data.primary_goal ?? "Not specified",
+    interested_domains: interestedDomains.length ? interestedDomains.join(", ") : "None",
 
-    // journey
-    current_Group: data?.current_Group ?? group,
-    current_Phase: data?.current_Phase ?? phase,
-    current_Day: data?.current_Day ?? 1,
-    streak_Days: data?.streak_Days ?? 0,
-    total_Active_Days: data?.total_Active_Days ?? 0,
-    last_Active_At: data?.last_Active_At ?? "N/A",
+    current_group: journey_context.current_group ?? group ?? "N/A",
+    current_phase: journey_context.current_phase ?? phase ?? "N/A",
+    current_day: journey_context.current_day ?? "1",
+    streak_days: journey_context.streak_days ?? "0",
+    total_active_days: journey_context.total_active_days ?? "0",
+    last_active_at: journey_context.last_active_at ?? "N/A",
+    
+    format_instructions: parser.getFormatInstructions(),
   });
 };
