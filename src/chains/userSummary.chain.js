@@ -3,9 +3,9 @@ import { z } from "zod";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-import { groupPhaseBaseMessages } from "../prompts/groupPhaseBase.prompt.js";
-import { userContextMessages } from "../prompts/userContextBase.prompt.js";
-import { userSummaryMessages } from "../prompts/userSummary.prompt.js";
+import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
+import { groupDetailsPrompt } from "../prompts/groupDetails.prompt.js";
+import { userCurrentGroupStatus } from "../prompts/userCurrentGroupStatus.prompt.js";
 import { createModuleLogger } from "../utils/logger.js";
 
 const log = createModuleLogger(import.meta.url);
@@ -20,15 +20,15 @@ const parser = StructuredOutputParser.fromZodSchema(userSummarySchema);
 
 // 1. Extract the text strings from your imported arrays and combine them
 const combinedSystemText = `
-${groupPhaseBaseMessages[0][1]}
-
-${userContextMessages[0][1]}
+${groupDetailsPrompt}
+\n
+{format_instructions}
 `;
 
 // 2. Create the prompt with exactly ONE system message at the top
 const finalPrompt = ChatPromptTemplate.fromMessages([
   ["system", combinedSystemText], 
-  ...userSummaryMessages,         
+  ["human", userCurrentGroupStatus], // FIX: Passed as a single template string, no spread operator!
 ]);
 
 export const createUserSummaryChain = (llm) => {
@@ -42,7 +42,7 @@ export const createUserSummaryChain = (llm) => {
 };
 
 export const generateUserSummary = async (data, llm) => {
-  const { academic_data = {}, personal_data = {}, journey_context = {} } = data;
+  const { academic_data = {}, personal_data = {}} = data;
 
   const {
     institute_name = "N/A",
@@ -58,15 +58,6 @@ export const generateUserSummary = async (data, llm) => {
     experience = "N/A" 
   } = personal_data;
 
-  const {
-    current_group = "N/A",
-    current_phase = "N/A",
-    current_day = "0",
-    streak_days = "0",
-    total_active_days = "0",
-    last_active_at = "N/A"
-  } = journey_context;
-
   log.info("creating chain...");
   const chain = createUserSummaryChain(llm);
   
@@ -81,12 +72,6 @@ export const generateUserSummary = async (data, llm) => {
     skills: skills.join(", "),
     primary_goal,
     experience,
-    current_group,
-    current_phase,
-    current_day,
-    streak_days,
-    total_active_days,
-    last_active_at,
     format_instructions: parser.getFormatInstructions(),
   });
 };

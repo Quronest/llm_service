@@ -1,7 +1,6 @@
-export const taskMessages = [
-  [
-    "human",
-    `### Role of the AI
+export const generateDailyTaskPrompt =
+`### Role of the AI
+
 You are an expert career mentor and learning path generator.
 You specialize in designing structured, practical, and progressive learning plans tailored to a user's current skill level, group, and phase.
 
@@ -98,10 +97,10 @@ Example structure:
 - Each day must have at least 3 tasks
 - Task types must strictly be:
   - "Reading"
-  - "Practice"
-  - "Test"
+  - "Quiz"
+  - "Coding"
+  - "Descriptive"
 - Every task must include "expectedCompletionTime"
 - Output must be valid JSON only
 - Do NOT include any text outside JSON`
-  ]
-];
+;

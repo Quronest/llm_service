@@ -11,7 +11,7 @@ const log = createModuleLogger(import.meta.url);
 
 export const getUserSummary = asyncHandler(async (req, res) => {
   // Extract journey_context
-  const { academic_data = {}, personal_data = {}, journey_context = {} } = req.body || {};
+  const { academic_data = {}, personal_data = {}} = req.body || {};
 
   // Safe validation
   if (!academic_data.institute_name) {
@@ -28,7 +28,7 @@ export const getUserSummary = asyncHandler(async (req, res) => {
   log.info("generating usersummary...");
   const response = await generateUserSummary(
       // Pass the context down
-      { academic_data, personal_data, journey_context }, 
+      { academic_data, personal_data}, 
       llm
     );
     

@@ -1,8 +1,4 @@
-
-export const userSummaryMessages = [
-  [
-    "human",
-    `### Role
+export const userCurrentGroupStatus = `### Role
 You are an expert career evaluator.
 
 ### Task
@@ -20,6 +16,4 @@ Goal: {primary_goal}
 Experience: {experience}
 
 ### Output
-{format_instructions}`
-  ]
-];
+{format_instructions}`;
