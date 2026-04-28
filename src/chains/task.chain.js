@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { createModuleLogger } from "../utils/logger.js";
@@ -31,19 +31,13 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 
-// 1. Combine system instructions into a single block for Gemini
 const combinedSystemText = `
 ${groupDetailsPrompt}
 ${userContextPrompt}
-\n
-{format_instructions}
+${generateDailyTaskPrompt}
 `;
 
-// 2. Create the unified prompt
-const finalPrompt = ChatPromptTemplate.fromMessages([
-  ["system", combinedSystemText], 
-  ["human", generateDailyTaskPrompt], // FIX: Passed as a single template string, no spread operator!
-]);
+const finalPrompt = PromptTemplate.fromTemplate(combinedSystemText)
 
 export const createTasksChain = (llm) => {
   return RunnableSequence.from([

@@ -1,4 +1,4 @@
-export const userCurrentGroupStatus = `### Role
+export const userSummaryPrompt = `### Role
 You are an expert career evaluator.
 
 ### Task
