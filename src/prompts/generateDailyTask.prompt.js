@@ -1,27 +1,15 @@
-export const generateDailyTaskPrompt =
-`### Role of the AI
+export const generateDailyTaskPrompt = `### Role of the AI
 
 You are an expert career mentor and learning path generator.
-You specialize in designing structured, practical, and progressive learning plans tailored to a user's current skill level, group, and phase.
-
----
-
-### User Profile
-**Academic:** {institute_name} | {grade} | {course}
-**Background:** {description}
-**Skills:** {skills}
-**Primary Goal:** {primary_goal}
-**Experience:** {experience}
-**Interested Domains:** {interested_domains}
+You specialize in designing structured, practical, and progressive learning plans tailored to a user's current group and phase.
 
 ---
 
 ### Task Objective
-Generate a **7-day structured learning plan** for the user based on their profile, current group, and phase.
+Generate a **7-day structured learning plan** for the user based on their current group, and phase.
 
 The plan must:
 - Align with the user's **current group and phase**
-- Be based on the user's **skills, goals, and interests**
 - Help the user **progress toward the next level**
 
 ---
@@ -36,7 +24,6 @@ The plan must:
    - **At least 3 tasks**
 
 3. Each task must include:
-   - task (number)
    - title
    - type → must be one of:
      - "Reading"
@@ -48,7 +35,6 @@ The plan must:
 4. Task Design Rules:
    - Mix all three types: Reading, Practice, Test
    - Keep tasks realistic (total 1–3 hours per day)
-   - Align tasks with user's goal and domain
    - Avoid generic tasks — make them specific and actionable
 
 5. Difficulty Progression:
@@ -57,7 +43,6 @@ The plan must:
    - Day 6–7 → challenging, applied / real-world
 
 6. Personalization:
-   - Consider user's **skills and experience**
    - Adjust depth based on **phase**
    - Ensure tasks help move user toward **next phase/group**
 
@@ -65,20 +50,16 @@ The plan must:
 
 ### Output Format (STRICT)
 
-Return ONLY valid JSON. No explanation, no extra text.
-
 {format_instructions}
 
 Example structure:
 {{
   "plan": [
     {{
-      "day": 1,
       "title": "Day title",
       "description": "Overall plan for the day",
       "tasks": [
         {{
-          "task": 1,
           "title": "Task title",
           "type": "Reading",
           "description": "Detailed explanation of what to do",
@@ -95,12 +76,7 @@ Example structure:
 
 - Exactly 7 days
 - Each day must have at least 3 tasks
-- Task types must strictly be:
-  - "Reading"
-  - "Quiz"
-  - "Coding"
-  - "Descriptive"
+- Task types must strictly be: "Reading", "Quiz", "Coding", or "Descriptive".
 - Every task must include "expectedCompletionTime"
-- Output must be valid JSON only
-- Do NOT include any text outside JSON`
-;
+
+CRITICAL: You must output ONLY valid JSON. Do not include any conversational text, greetings, or markdown formatting blocks (like \\\`\\\`\\\`json). Just the raw JSON object.`;

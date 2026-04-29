@@ -11,15 +11,13 @@ import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt.js"
 const log = createModuleLogger(import.meta.url);
 
 const taskSchema = z.object({
-  task: z.number(),
   title: z.string(),
-  type: z.enum(["Reading", "Practice", "Test"]),
+  type: z.enum(["Reading", "Quiz", "Coding", "Descriptive"]),
   description: z.string(),
   expectedCompletionTime: z.string().min(1),
 });
 
 const daySchema = z.object({
-  day: z.number(),
   title: z.string(),
   description: z.string(),
   tasks: z.array(taskSchema).min(3),
@@ -50,37 +48,29 @@ export const createTasksChain = (llm) => {
 };
 
 export const generateTasks = async (data, llm) => {
-
-  const { group, phase, academic_data = {}, personal_data = {}, journey_context = {} } = data;
+  const { userContext = {} } = data;
 
   log.info("creating tasks chain...");
+
   const chain = createTasksChain(llm);
 
-  const skills = Array.isArray(personal_data.skills) ? personal_data.skills : [];
-  const interestedDomains = Array.isArray(personal_data.interested_domains) ? personal_data.interested_domains : [];
-
   log.info("Invoking tasks chain...");
-  return await chain.invoke({
-    group: group ?? "N/A",
-    phase: phase ?? "N/A",
-
-    grade: academic_data.grade ?? "Not specified",
-    course: academic_data.course ?? "Not specified",
-    description: academic_data.description ?? "Not specified",
-    institute_name: academic_data.institute_name ?? "Not specified",
-
-    skills: skills.length ? skills.join(", ") : "None",
-    experience: personal_data.experience ?? "No experience",
-    primary_goal: personal_data.primary_goal ?? "Not specified",
-    interested_domains: interestedDomains.length ? interestedDomains.join(", ") : "None",
-
-    current_group: journey_context.current_group ?? group ?? "N/A",
-    current_phase: journey_context.current_phase ?? phase ?? "N/A",
-    current_day: journey_context.current_day ?? "1",
-    streak_days: journey_context.streak_days ?? "0",
-    total_active_days: journey_context.total_active_days ?? "0",
-    last_active_at: journey_context.last_active_at ?? "N/A",
-    
+  
+  const rawResponse = await chain.invoke({
+    ...userContext,
     format_instructions: parser.getFormatInstructions(),
   });
+
+  const transformedPlan = rawResponse.plan.map((dayItem, dayIndex) => {
+    return {
+      day: dayIndex + 1, 
+      ...dayItem,
+      tasks: dayItem.tasks.map((taskItem, taskIndex) => ({
+        task: taskIndex + 1, 
+        ...taskItem,
+      })),
+    };
+  });
+
+  return { plan: transformedPlan };
 };
