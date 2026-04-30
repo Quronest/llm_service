@@ -15,10 +15,7 @@ export const generateUserTasks = asyncHandler(async (req, res) => {
   return res.status(200).json(
     new ApiResponse(
       200,
-      {
-        llm: "gemini",
-        plan: response.plan, 
-      },
+      response.plan,
       "7-day task plan generated successfully"
     )
   );

@@ -3,7 +3,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { createModuleLogger } from "../utils/logger.js";
-
+import { taskProgressionRulesPrompt } from "../prompts/taskProgressionRules.prompt.js";
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt.js";
 import { userContextPrompt } from "../prompts/userContext.prompt.js";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt.js"; 
@@ -32,6 +32,7 @@ const parser = StructuredOutputParser.fromZodSchema(planSchema);
 const combinedSystemText = `
 ${groupDetailsPrompt}
 ${userContextPrompt}
+${taskProgressionRulesPrompt}
 ${generateDailyTaskPrompt}
 `;
 
