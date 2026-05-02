@@ -28,6 +28,7 @@ export const verifyToken = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
+    log.debug("token - " + token);
     const PUBLIC_KEY = await getPublicKey();
     log.debug("Key - " + PUBLIC_KEY);
 
