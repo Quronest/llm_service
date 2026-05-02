@@ -3,7 +3,17 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { createModuleLogger } from "../utils/logger.js";
-import { taskProgressionRulesPrompt } from "../prompts/taskProgressionRules.prompt.js";
+import {
+  groupAphaseOneRules,
+  groupAphaseTwoRules,
+  groupAphaseThreeRules,
+  groupBphaseOneRules,
+  groupBphaseTwoRules,
+  groupBphaseThreeRules,
+  groupCphaseOneRules,
+  groupCphaseTwoRules,
+  groupCphaseThreeRules,
+} from "../prompts/taskProgressionRules.prompt.js";
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt.js";
 import { userContextPrompt } from "../prompts/userContext.prompt.js";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt.js"; 
@@ -29,16 +39,54 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 
-const combinedSystemText = `
+const getProgressionRules = (group, phase) => {
+  // Extract group letter from formats like "GROUP_B" or just "B"
+  const groupLetter = typeof group === 'string' ? group.split('_').pop() : group;
+  
+  // Extract phase number from formats like "PHASE_2" or just 2
+  const phaseNum = typeof phase === 'string' 
+    ? parseInt(phase.split('_').pop(), 10) 
+    : phase;
+
+  const rulesMap = {
+    A: {
+      1: groupAphaseOneRules,
+      2: groupAphaseTwoRules,
+      3: groupAphaseThreeRules,
+    },
+    B: {
+      1: groupBphaseOneRules,
+      2: groupBphaseTwoRules,
+      3: groupBphaseThreeRules,
+    },
+    C: {
+      1: groupCphaseOneRules,
+      2: groupCphaseTwoRules,
+      3: groupCphaseThreeRules,
+    },
+  };
+
+  const groupRules = rulesMap[groupLetter];
+
+  const phaseRules = groupRules[phaseNum];
+
+  return phaseRules;
+};
+
+const CombinedSystemText = (group, phase) => {
+  const progressionRules = getProgressionRules(group, phase);
+
+  return `
 ${groupDetailsPrompt}
 ${userContextPrompt}
-${taskProgressionRulesPrompt}
+${progressionRules}
 ${generateDailyTaskPrompt}
 `;
+};
 
-const finalPrompt = PromptTemplate.fromTemplate(combinedSystemText)
 
-export const createTasksChain = (llm) => {
+export const createTasksChain = (llm, group, phase) => {
+  const finalPrompt = PromptTemplate.fromTemplate(CombinedSystemText(group, phase));
   return RunnableSequence.from([
     finalPrompt, 
     llm.withConfig({
@@ -50,10 +98,10 @@ export const createTasksChain = (llm) => {
 
 export const generateTasks = async (data, llm) => {
   const { userContext = {} } = data;
-
+  const { current_group: group, current_phase: phase } = userContext;
   log.info("creating tasks chain...");
 
-  const chain = createTasksChain(llm);
+  const chain = createTasksChain(llm, group, phase);
 
   log.info("Invoking tasks chain...");
   
