@@ -23,6 +23,9 @@ const log = createModuleLogger(import.meta.url);
 const taskSchema = z.object({
   title: z.string(),
   type: z.enum(["Reading", "Quiz", "Coding", "Descriptive"]),
+  level: z.enum(["EASY", "MEDIUM", "HARD"]),
+  domain: z.enum(["WEB_DEVELOPMENT", "MACHINE_LEARNING","DATA_SCIENCE", "APP_DEVELOPMENT", "GAME_DEVELOPMENT"]),
+  tags: z.array(z.string()).min(3),
   description: z.string(),
   expectedCompletionTime: z.string().min(1),
 });
@@ -40,10 +43,9 @@ const planSchema = z.object({
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 
 const getProgressionRules = (group, phase) => {
-  // Extract group letter from formats like "GROUP_B" or just "B"
+
   const groupLetter = typeof group === 'string' ? group.split('_').pop() : group;
-  
-  // Extract phase number from formats like "PHASE_2" or just 2
+
   const phaseNum = typeof phase === 'string' 
     ? parseInt(phase.split('_').pop(), 10) 
     : phase;
