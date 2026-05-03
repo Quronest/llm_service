@@ -1,4 +1,3 @@
-
 export const groupAphaseOneRules = `### Curriculum & Progression Rules
 
 When generating the 7-day plan, you MUST strictly adapt the tasks based on the user's CURRENT_GROUP, CURRENT_PHASE, and CURRENT_DAY. 
@@ -105,4 +104,22 @@ GROUP C, Phase 3 (Professionally experienced):
 - Days 8-14: Establishing thought leadership. Tasks involve mentoring concepts or contributing meaningful open-source PRs.
 - Days 15-21: Executive mock interviews, final resume polish, and readiness for mid/senior level applications.
 
-**CRITICAL INSTRUCTION:** Read the CURRENT_DAY and CURRENT_PHASE carefully. ONLY generate tasks that match the specific 7-day window the user is currently in.`
+**CRITICAL INSTRUCTION:** Read the CURRENT_DAY and CURRENT_PHASE carefully. ONLY generate tasks that match the specific 7-day window the user is currently in.`;
+
+export const groupPahseRulesPromptMap = {
+  GROUP_A: {
+    PHASE_1: groupAphaseOneRules,
+    PHASE_2: groupAphaseTwoRules,
+    PHASE_3: groupAphaseThreeRules,
+  },
+  GROUP_B: {
+    PHASE_1: groupBphaseOneRules,
+    PHASE_2: groupBphaseTwoRules,
+    PHASE_3: groupBphaseThreeRules,
+  },
+  GROUP_C: {
+    PHASE_1: groupCphaseOneRules,
+    PHASE_2: groupCphaseTwoRules,
+    PHASE_3: groupCphaseThreeRules,
+  },
+};
