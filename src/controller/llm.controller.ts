@@ -1,10 +1,12 @@
-import { summarize } from "../chains/summarize.chain.js";
-import geminiLLM from "../llm/gemini.llm.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import type { Request, Response } from "express";
 
-export const summarizeText = asyncHandler(async (req, res) => {
+import { summarize } from "../chains/summarize.chain";
+import geminiLLM from "../llm/gemini.llm";
+import { ApiResponse } from "../utils/ApiResponse";
+import { ApiError } from "../utils/ApiError";
+import { asyncHandler } from "../utils/asyncHandler";
+
+export const summarizeText = asyncHandler(async (req: Request, res: Response) => {
   const { text } = req.body;
 
   // validation

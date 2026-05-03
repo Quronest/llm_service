@@ -1,15 +1,16 @@
-// user.controller.js
-import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { generateUserSummary } from "../chains/userSummary.chain.js";
-import geminiLLM from "../llm/gemini.llm.js";
+import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { createModuleLogger } from "../utils/logger.js";
+
+import { ApiError } from "../utils/ApiError";
+import { ApiResponse } from "../utils/ApiResponse";
+import { asyncHandler } from "../utils/asyncHandler";
+import { generateUserSummary } from "../chains/userSummary.chain";
+import geminiLLM from "../llm/gemini.llm";
+import { createModuleLogger } from "../utils/logger";
 
 const log = createModuleLogger(import.meta.url);
 
-export const getUserSummary = asyncHandler(async (req, res) => {
+export const getUserSummary = asyncHandler(async (req: Request, res: Response) => {
   // Extract journey_context
   const { academic_data = {}, personal_data = {}} = req.body || {};
 
@@ -28,7 +29,7 @@ export const getUserSummary = asyncHandler(async (req, res) => {
   log.info("generating usersummary...");
   const response = await generateUserSummary(
       // Pass the context down
-      { academic_data, personal_data}, 
+      { academic_data, personal_data },
       llm
     );
     

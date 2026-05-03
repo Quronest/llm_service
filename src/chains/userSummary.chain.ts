@@ -1,11 +1,12 @@
-// src/chains/userSummary.chain.js
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
+import type { RunnableLike } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-import { groupDetailsPrompt } from "../prompts/groupDetails.prompt.js";
-import { userSummaryPrompt } from "../prompts/userSummary.prompt.js";
-import { createModuleLogger } from "../utils/logger.js";
+
+import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
+import { userSummaryPrompt } from "../prompts/userSummary.prompt";
+import { createModuleLogger } from "../utils/logger";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -17,6 +18,25 @@ const userSummarySchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(userSummarySchema);
 
+type LlmWithConfig = {
+  withConfig: (config: Record<string, unknown>) => RunnableLike;
+};
+
+type UserSummaryInput = {
+  academic_data?: {
+    institute_name?: string;
+    grade?: string;
+    course?: string;
+    description?: string;
+    interested_domains?: string[];
+  };
+  personal_data?: {
+    skills?: string[];
+    primary_goal?: string;
+    experience?: string;
+  };
+};
+
 const combinedSystemText = `
 ${groupDetailsPrompt}
 ${userSummaryPrompt}
@@ -24,7 +44,7 @@ ${userSummaryPrompt}
 
 const finalPrompt = PromptTemplate.fromTemplate(combinedSystemText);
 
-export const createUserSummaryChain = (llm) => {
+export const createUserSummaryChain = (llm: LlmWithConfig) => {
   return RunnableSequence.from([
     finalPrompt,
     llm.withConfig({
@@ -34,8 +54,11 @@ export const createUserSummaryChain = (llm) => {
   ]);
 };
 
-export const generateUserSummary = async (data, llm) => {
-  const { academic_data = {}, personal_data = {}} = data;
+export const generateUserSummary = async (
+  data: UserSummaryInput,
+  llm: LlmWithConfig,
+) => {
+  const { academic_data = {}, personal_data = {} } = data;
 
   const {
     institute_name,
@@ -45,11 +68,7 @@ export const generateUserSummary = async (data, llm) => {
     interested_domains = [],
   } = academic_data;
 
-  const { 
-    skills = [], 
-    primary_goal = "N/A", 
-    experience = "N/A" 
-  } = personal_data;
+  const { skills = [], primary_goal = "N/A", experience = "N/A" } = personal_data;
 
   log.info("creating chain...");
   const chain = createUserSummaryChain(llm);

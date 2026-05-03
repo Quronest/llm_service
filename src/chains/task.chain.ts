@@ -1,12 +1,18 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
+import type { RunnableLike } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-import { createModuleLogger } from "../utils/logger.js";
-import { groupPahseRulesPromptMap } from "../prompts/taskProgressionRules.prompt.js";
-import { groupDetailsPrompt } from "../prompts/groupDetails.prompt.js";
-import { userContextPrompt } from "../prompts/userContext.prompt.js";
-import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt.js";
+
+import { createModuleLogger } from "../utils/logger";
+import {
+  groupPahseRulesPromptMap,
+  type Group,
+  type Phase,
+} from "../prompts/taskProgressionRules.prompt";
+import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
+import { userContextPrompt } from "../prompts/userContext.prompt";
+import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -28,8 +34,22 @@ const planSchema = z.object({
 });
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
+type PlanResponse = z.infer<typeof planSchema>;
 
-const CombinedSystemText = (group, phase) => {
+type LlmWithConfig = {
+  withConfig: (config: Record<string, unknown>) => RunnableLike;
+};
+
+type TaskUserContext = Record<string, unknown> & {
+  current_group: Group;
+  current_phase: Phase;
+};
+
+type GenerateTasksInput = {
+  userContext: TaskUserContext;
+};
+
+const CombinedSystemText = (group: Group, phase: Phase) => {
   const progressionRules = groupPahseRulesPromptMap[group][phase];
 
   return `
@@ -40,7 +60,11 @@ ${generateDailyTaskPrompt}
 `;
 };
 
-export const createTasksChain = (llm, group, phase) => {
+export const createTasksChain = (
+  llm: LlmWithConfig,
+  group: Group,
+  phase: Phase,
+) => {
   const finalPrompt = PromptTemplate.fromTemplate(
     CombinedSystemText(group, phase),
   );
@@ -53,8 +77,11 @@ export const createTasksChain = (llm, group, phase) => {
   ]);
 };
 
-export const generateTasks = async (data, llm) => {
-  const { userContext = {} } = data;
+export const generateTasks = async (
+  data: GenerateTasksInput,
+  llm: LlmWithConfig,
+) => {
+  const { userContext } = data;
   const { current_group: group, current_phase: phase } = userContext;
   log.info("creating tasks chain...");
 
@@ -62,10 +89,10 @@ export const generateTasks = async (data, llm) => {
 
   log.info("Invoking tasks chain...");
 
-  const rawResponse = await chain.invoke({
+  const rawResponse = (await chain.invoke({
     ...userContext,
     format_instructions: parser.getFormatInstructions(),
-  });
+  })) as PlanResponse;
 
   const transformedPlan = rawResponse.plan.map((dayItem, dayIndex) => {
     return {
