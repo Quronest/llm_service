@@ -10,34 +10,37 @@ import { createModuleLogger } from "../utils/logger";
 
 const log = createModuleLogger(import.meta.url);
 
-export const getUserSummary = asyncHandler(async (req: Request, res: Response) => {
-  // Extract journey_context
-  const { academic_data = {}, personal_data = {}} = req.body || {};
+export const getUserSummary = asyncHandler(
+  async (req: Request, res: Response) => {
+    // Extract journey_context
+    const { academic_data = {}, personal_data = {} } = req.body || {};
 
-  // Safe validation
-  if (!academic_data.institute_name) {
-    throw new ApiError(400, "institute_name is required");
-  }
+    // Safe validation
+    if (!academic_data.institute_name) {
+      throw new ApiError(400, "institute_name is required");
+    }
 
-  if (!personal_data.primary_goal) {
-    throw new ApiError(400, "primary_goal is required");
-  }
-  
-  log.info("ready llm...");
-  const llm = geminiLLM();
-  
-  log.info("generating usersummary...");
-  const response = await generateUserSummary(
-      // Pass the context down
+    if (!personal_data.primary_goal) {
+      throw new ApiError(400, "primary_goal is required");
+    }
+
+    log.info("ready llm...");
+    const llm = geminiLLM();
+
+    log.info("generating usersummary...");
+    const response = await generateUserSummary(
       { academic_data, personal_data },
-      llm
+      llm,
     );
-    
-  return res.status(StatusCodes.OK).json(
-    new ApiResponse(
-      StatusCodes.OK,
-      response,
-      "User summary generated successfully"
-    )
-  );
-});
+
+    return res
+      .status(StatusCodes.OK)
+      .json(
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "User summary generated successfully",
+        ),
+      );
+  },
+);
