@@ -1,70 +1,58 @@
 import js from "@eslint/js";
-
-const nodeGlobals = {
-  __dirname: "readonly",
-  __filename: "readonly",
-  Buffer: "readonly",
-  clearImmediate: "readonly",
-  clearInterval: "readonly",
-  clearTimeout: "readonly",
-  console: "readonly",
-  exports: "writable",
-  global: "readonly",
-  module: "writable",
-  process: "readonly",
-  queueMicrotask: "readonly",
-  require: "readonly",
-  setImmediate: "readonly",
-  setInterval: "readonly",
-  setTimeout: "readonly",
-};
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
+import importPlugin from "eslint-plugin-import";
+import prettier from "eslint-config-prettier";
 
 export default [
+  // Base JS rules
   js.configs.recommended,
+
+  // TypeScript config
   {
-    files: ["**/*.js"],
+    files: ["**/*.ts"],
     languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-      globals: nodeGlobals,
+      parser: tsParser,
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+      import: importPlugin,
     },
     rules: {
-      // General
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "no-console": "off",
-      "no-var": "error",
-      "prefer-const": "warn",
+      "no-undef": "off",
+      "no-unused-vars": "off",
 
-      // Best practices
-      "eqeqeq": ["error", "always"],
-      "curly": "error",
-      "no-else-return": "warn",
-      "no-multi-spaces": "error",
-      "prefer-template": "warn",
+      // TypeScript rules
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
 
-      // Style (optional)
-      "semi": ["error", "always"],
-      "quotes": ["error", "double"],
-      "indent": ["error", 2],
-      "comma-dangle": ["error", "always-multiline"],
-      "object-curly-spacing": ["error", "always"],
-      "array-bracket-spacing": ["error", "never"],
+      // Import rules
+      "import/order": [
+        "warn",
+        {
+          groups: ["builtin", "external", "internal"],
+          "newlines-between": "always",
+        },
+      ],
 
-      // Node-specific
-      "no-process-exit": "warn",
-      "callback-return": "warn",
+      "import/no-unresolved": "off", // handled by TS
+
+      // General rules
+      "no-console": "warn",
     },
   },
+
+  // Ignore files
   {
-    ignores: [
-      "node_modules/**",
-      "build/**",
-      ".git/**",
-      "coverage/**",
-      ".env",
-      ".env.*",
-      "keys/**",
-      "public/**",
-    ],
+    ignores: ["dist", "node_modules", "*.config.ts"],
   },
+
+  // Prettier compatibility (must be last)
+  prettier,
 ];

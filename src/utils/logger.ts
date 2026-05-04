@@ -1,6 +1,9 @@
-import { createLogger, format, transports } from "winston";
 import { fileURLToPath } from "url";
 import path from "path";
+
+import { createLogger, format, transports } from "winston";
+
+import { env } from "../config/env";
 
 const { combine, timestamp, printf } = format;
 
@@ -10,7 +13,7 @@ const logFormat = printf(({ level, message, timestamp, module }) => {
 });
 
 // Determine log level based on debug mode
-const isDebugMode = process.env.APP_DEBUG === "true";
+const isDebugMode = env.APP_DEBUG;
 const logLevel = isDebugMode ? "debug" : "info";
 
 // Core logger
@@ -20,15 +23,22 @@ const logger = createLogger({
   transports: [new transports.Console()],
 });
 
-export const createModuleLogger = (metaUrl) => {
+type ModuleLogger = {
+  info: (message: string) => void;
+  error: (message: string) => void;
+  warn: (message: string) => void;
+  debug: (message: string) => void;
+};
+
+export const createModuleLogger = (metaUrl: string): ModuleLogger => {
   const __filename = fileURLToPath(metaUrl);
   const moduleName = path.basename(__filename);
 
   return {
-    info: (message) => logger.info(message, { module: moduleName }),
-    error: (message) => logger.error(message, { module: moduleName }),
-    warn: (message) => logger.warn(message, { module: moduleName }),
-    debug: (message) => logger.debug(message, { module: moduleName }),
+    info: (message: string) => logger.info(message, { module: moduleName }),
+    error: (message: string) => logger.error(message, { module: moduleName }),
+    warn: (message: string) => logger.warn(message, { module: moduleName }),
+    debug: (message: string) => logger.debug(message, { module: moduleName }),
   };
 };
 

@@ -1,24 +1,41 @@
-import jwt from "jsonwebtoken";
-import { ApiError } from "../utils/ApiError.js";
 import fs from "fs";
-import { createModuleLogger } from "../utils/logger.js";
+
+import jwt from "jsonwebtoken";
+import type { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+
+import { env } from "../config/env";
+import { ApiError } from "../utils/ApiError";
+import { createModuleLogger } from "../utils/logger";
 
 const log = createModuleLogger(import.meta.url);
 
-function getPublicKey() {
+type ServiceTokenPayload = jwt.JwtPayload & {
+  type?: string;
+};
+
+function getPublicKey(): string {
   try {
-    // Read the file as a string
-    const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_PATH, "utf8");
+    const publicKeyPath = env.PUBLIC_KEY_PATH;
+    if (!publicKeyPath) {
+      throw new ApiError(500, "PUBLIC_KEY_PATH is not set");
+    }
+
+    const publicKey = fs.readFileSync(publicKeyPath, "utf8");
 
     return publicKey;
   } catch (error) {
-    log.error("Error reading public key:", error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    log.error(`Error reading public key: ${message}`);
     throw error;
   }
 }
 
-export const verifyToken = async (req, res, next) => {
+export const verifyToken = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -35,7 +52,7 @@ export const verifyToken = async (req, res, next) => {
     // Verify RSA token
     const decoded = jwt.verify(token, PUBLIC_KEY, {
       algorithms: ["RS256"],
-    });
+    }) as ServiceTokenPayload;
 
     // Invalid payload type
     if (decoded.type !== "service") {
@@ -44,7 +61,7 @@ export const verifyToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    log.error(error);
+    log.error(error instanceof Error ? error.message : String(error));
     if (error instanceof ApiError) {
       throw error;
     }
