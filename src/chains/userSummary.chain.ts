@@ -1,41 +1,16 @@
-import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
-import type { RunnableLike } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
 import { userSummaryPrompt } from "../prompts/userSummary.prompt";
 import { createModuleLogger } from "../utils/logger";
+import { userSummarySchema, type UserSummaryResponse } from "../schemas/userSummary.schema";
+import { type LlmWithConfig, type UserSummaryInput } from "../types";
 
 const log = createModuleLogger(import.meta.url);
 
-const userSummarySchema = z.object({
-  group: z.enum(["GROUP_A", "GROUP_B", "GROUP_C"]),
-  phase: z.enum(["PHASE_1", "PHASE_2", "PHASE_3"]),
-  summary: z.string(),
-});
-
 const parser = StructuredOutputParser.fromZodSchema(userSummarySchema);
-
-type LlmWithConfig = {
-  withConfig: (config: Record<string, unknown>) => RunnableLike;
-};
-
-type UserSummaryInput = {
-  academic_data?: {
-    institute_name?: string;
-    grade?: string;
-    course?: string;
-    description?: string;
-    interested_domains?: string[];
-  };
-  personal_data?: {
-    skills?: string[];
-    primary_goal?: string;
-    experience?: string;
-  };
-};
 
 const combinedSystemText = `
 ${groupDetailsPrompt}
@@ -57,7 +32,7 @@ export const createUserSummaryChain = (llm: LlmWithConfig) => {
 export const generateUserSummary = async (
   data: UserSummaryInput,
   llm: LlmWithConfig,
-) => {
+): Promise<UserSummaryResponse> => {
   const { academic_data = {}, personal_data = {} } = data;
 
   const {
@@ -75,7 +50,7 @@ export const generateUserSummary = async (
   
   log.info("Invoking in chain...");
   
-  return await chain.invoke({
+  return (await chain.invoke({
     institute_name,
     grade,
     course,
@@ -85,5 +60,5 @@ export const generateUserSummary = async (
     primary_goal,
     experience,
     format_instructions: parser.getFormatInstructions(),
-  });
+  })) as UserSummaryResponse;
 };

@@ -106,8 +106,7 @@ GROUP C, Phase 3 (Professionally experienced):
 
 **CRITICAL INSTRUCTION:** Read the CURRENT_DAY and CURRENT_PHASE carefully. ONLY generate tasks that match the specific 7-day window the user is currently in.`;
 
-export type Group = "GROUP_A" | "GROUP_B" | "GROUP_C";
-export type Phase = "PHASE_1" | "PHASE_2" | "PHASE_3";
+import { type Group, type Phase } from "../types";
 
 export const groupPahseRulesPromptMap: Record<Group, Record<Phase, string>> = {
   GROUP_A: {
