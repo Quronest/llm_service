@@ -7,12 +7,13 @@ import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
 import { userSummaryPrompt } from "../prompts/userSummary.prompt";
 import { createModuleLogger } from "../utils/logger";
+import { userGroupEnumList, phaseEnumList } from "../enums";
 
 const log = createModuleLogger(import.meta.url);
 
 const userSummarySchema = z.object({
-  group: z.enum(["GROUP_A", "GROUP_B", "GROUP_C"]),
-  phase: z.enum(["PHASE_1", "PHASE_2", "PHASE_3"]),
+  group: z.enum(userGroupEnumList),
+  phase: z.enum(phaseEnumList),
   summary: z.string(),
 });
 
@@ -68,13 +69,17 @@ export const generateUserSummary = async (
     interested_domains = [],
   } = academic_data;
 
-  const { skills = [], primary_goal = "N/A", experience = "N/A" } = personal_data;
+  const {
+    skills = [],
+    primary_goal = "N/A",
+    experience = "N/A",
+  } = personal_data;
 
   log.info("creating chain...");
   const chain = createUserSummaryChain(llm);
-  
+
   log.info("Invoking in chain...");
-  
+
   return await chain.invoke({
     institute_name,
     grade,

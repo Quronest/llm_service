@@ -1,3 +1,5 @@
+import { Group, Phase } from "../enums";
+
 export const groupAphaseOneRules = `### Curriculum & Progression Rules
 
 When generating the 7-day plan, you MUST strictly adapt the tasks based on the user's CURRENT_GROUP, CURRENT_PHASE, and CURRENT_DAY. 
@@ -105,9 +107,6 @@ GROUP C, Phase 3 (Professionally experienced):
 - Days 15-21: Executive mock interviews, final resume polish, and readiness for mid/senior level applications.
 
 **CRITICAL INSTRUCTION:** Read the CURRENT_DAY and CURRENT_PHASE carefully. ONLY generate tasks that match the specific 7-day window the user is currently in.`;
-
-export type Group = "GROUP_A" | "GROUP_B" | "GROUP_C";
-export type Phase = "PHASE_1" | "PHASE_2" | "PHASE_3";
 
 export const groupPahseRulesPromptMap: Record<Group, Record<Phase, string>> = {
   GROUP_A: {

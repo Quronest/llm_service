@@ -1,20 +1,29 @@
-import { z } from 'zod';
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { z } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+
+import {
+  userGroupEnumList,
+  phaseEnumList,
+  engagementLevelEnumList,
+  burnoutRiskEnumList,
+  booleanStringEnumList,
+  burnoutRisk,
+  userGroup,
+  phase,
+  engagementLevel,
+  booleanString,
+} from "../enums";
 
 extendZodWithOpenApi(z);
 
 export const userContextValidationSchema = z
   .object({
-    current_group: z
-      .enum(['GROUP_A', 'GROUP_B', 'GROUP_C'])
-      .openapi({ example: 'GROUP_C' }),
+    current_group: z.enum(userGroupEnumList).openapi({ example: userGroup.GROUP_A }),
 
-    current_phase: z
-      .enum(['PHASE_1', 'PHASE_2', 'PHASE_3'])
-      .openapi({ example: 'PHASE_3' }),
+    current_phase: z.enum(phaseEnumList).openapi({ example: phase.PHASE_1 }),
 
     current_stage: z.string().openapi({
-      example: 'Independent Project Builder',
+      example: "Independent Project Builder",
     }),
 
     current_day: z.number().int().nonnegative().openapi({
@@ -22,26 +31,19 @@ export const userContextValidationSchema = z
     }),
 
     engagement_level: z
-      .enum(['Low', 'Medium', 'High'])
-      .openapi({ example: 'High' }),
+      .enum(engagementLevelEnumList)
+      .openapi({ example: engagementLevel.HIGH }),
 
-    burnout_risk: z
-      .enum(['Low', 'Medium', 'High'])
-      .openapi({ example: 'Low' }),
+    burnout_risk: z.enum(burnoutRiskEnumList).openapi({ example: burnoutRisk.LOW }),
 
-    is_on_track: z
-      .enum(['True', 'False'])
-      .openapi({ example: 'True' }),
+    is_on_track: z.boolean().openapi({ example: true }),
 
     needs_intervention: z
-      .enum(['True', 'False'])
-      .openapi({ example: 'False' }),
+      .enum(booleanStringEnumList)
+      .openapi({ example: booleanString.FALSE }),
 
-    summary: z.string().openapi({
-      example:
-        'User is consistently active and building good projects, but needs to shift focus from guided tutorials to integrating external APIs and writing cleaner, production-level code to progress to Group C.',
-    }),
+    summary: z.string().openapi({}),
   })
-  .openapi('UserContext');
+  .openapi("UserContext");
 
 export type userContextType = z.infer<typeof userContextValidationSchema>;

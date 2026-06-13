@@ -1,6 +1,4 @@
-
-export const groupDetailsPrompt =
-`### Group & Phase Definitions:
+export const groupDetailsPrompt = `### Group & Phase Definitions:
 
 ## GROUP A: Low Clarity / Weak Foundation
 
@@ -78,5 +76,4 @@ Meaning: Industry-exposed and reliable
 - 1+ year of real-world experience
 - Proven ability to deliver real solutions
 - Strong understanding of systems and problem-solving
-Meaning: Fully industry-ready / near professional level`
-;
+Meaning: Fully industry-ready / near professional level`;
