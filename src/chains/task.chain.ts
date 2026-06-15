@@ -5,20 +5,18 @@ import type { RunnableLike } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 import { createModuleLogger } from "../utils/logger";
-import {
-  groupPahseRulesPromptMap,
-  type Group,
-  type Phase,
-} from "../prompts/taskProgressionRules.prompt";
+import { groupPahseRulesPromptMap } from "../prompts/taskProgressionRules.prompt";
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
 import { userContextPrompt } from "../prompts/userContext.prompt";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
+import { type Group, type Phase, taskTypeEnumList } from "../enums";
+import { LlmWithConfig } from "../types/llmConfigType";
 
 const log = createModuleLogger(import.meta.url);
 
 const taskSchema = z.object({
   title: z.string(),
-  type: z.enum(["Reading", "Quiz", "Coding", "Descriptive"]),
+  type: z.enum(taskTypeEnumList),
   description: z.string(),
   expectedCompletionTime: z.string().min(1),
 });
@@ -35,10 +33,6 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 type PlanResponse = z.infer<typeof planSchema>;
-
-type LlmWithConfig = {
-  withConfig: (config: Record<string, unknown>) => RunnableLike;
-};
 
 type TaskUserContext = Record<string, unknown> & {
   current_group: Group;
