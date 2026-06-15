@@ -18,9 +18,9 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 
-app.use('/llm/swagger-ui/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get('/llm/swagger-ui/docs.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
+app.use("/llm/swagger-ui/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/llm/swagger-ui/docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpec);
 });
 

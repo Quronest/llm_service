@@ -16,7 +16,9 @@ extendZodWithOpenApi(z);
 
 export const userContextValidationSchema = z
   .object({
-    current_group: z.enum(userGroupEnumList).openapi({ example: userGroup.GROUP_A }),
+    current_group: z
+      .enum(userGroupEnumList)
+      .openapi({ example: userGroup.GROUP_A }),
 
     current_phase: z.enum(phaseEnumList).openapi({ example: phase.PHASE_1 }),
 
@@ -32,7 +34,9 @@ export const userContextValidationSchema = z
       .enum(engagementLevelEnumList)
       .openapi({ example: engagementLevel.HIGH }),
 
-    burnout_risk: z.enum(burnoutRiskEnumList).openapi({ example: burnoutRisk.LOW }),
+    burnout_risk: z
+      .enum(burnoutRiskEnumList)
+      .openapi({ example: burnoutRisk.LOW }),
 
     is_on_track: z.boolean().openapi({ example: true }),
 

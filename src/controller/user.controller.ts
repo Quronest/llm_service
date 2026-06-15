@@ -13,20 +13,16 @@ const log = createModuleLogger(import.meta.url);
 
 export const getUserSummary = asyncHandler(
   async (req: Request, res: Response) => {
-
     const validateData = await validateZodSchema(
       userSummaryGenerationValidationSchema,
-      req.body
+      req.body,
     );
 
     log.info("ready llm...");
     const llm = geminiLLM();
 
     log.info("generating usersummary...");
-    const response = await generateUserSummary(
-      validateData,
-      llm,
-    );
+    const response = await generateUserSummary(validateData, llm);
 
     return res
       .status(StatusCodes.OK)

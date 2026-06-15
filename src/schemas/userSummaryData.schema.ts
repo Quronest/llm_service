@@ -46,15 +46,16 @@ export const academicDataValidationSchema = z
   })
   .openapi("AcademicData");
 
-  
-
 export type AcademicDataType = z.infer<typeof academicDataValidationSchema>;
 
 export const userSummaryGenerationValidationSchema = z.object({
-    academic_data: academicDataValidationSchema,
-    personal_data: personalDataValidationSchema
+  academic_data: academicDataValidationSchema,
+  personal_data: personalDataValidationSchema,
 });
 
-export type UserSummaryGenerateDataType = z.infer<typeof userSummaryGenerationValidationSchema>;
+export type UserSummaryGenerateDataType = z.infer<
+  typeof userSummaryGenerationValidationSchema
+>;
 
-export const swaggerUserSummaryGenerationSchema = userSummaryGenerationValidationSchema;
+export const swaggerUserSummaryGenerationSchema =
+  userSummaryGenerationValidationSchema;

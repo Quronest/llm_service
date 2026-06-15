@@ -1,6 +1,9 @@
 // swagger-config.ts
 import swaggerJsdoc from "swagger-jsdoc";
-import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
+import {
+  OpenAPIRegistry,
+  OpenApiGeneratorV3,
+} from "@asteasolutions/zod-to-openapi";
 
 import { userContextValidationSchema } from "../schemas/userContext.schema";
 import { swaggerUserSummaryGenerationSchema } from "../schemas/userSummaryData.schema";
@@ -9,7 +12,7 @@ import { apiResponseSchema } from "../schemas/apiResponse.schema";
 const registry = new OpenAPIRegistry();
 
 registry.register("UserContext", userContextValidationSchema);
-registry.register("UserSummaryData", swaggerUserSummaryGenerationSchema)
+registry.register("UserSummaryData", swaggerUserSummaryGenerationSchema);
 registry.register("ApiResponse", apiResponseSchema);
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
@@ -20,8 +23,7 @@ const options = {
     openapi: "3.0.0",
     info: {
       title: "Quronest LLM service",
-      description:
-        "API endpoints for a Quronest LLM service",
+      description: "API endpoints for a Quronest LLM service",
       version: "1.0.0",
     },
     servers: [
@@ -32,7 +34,7 @@ const options = {
       {
         url: "https://localhost.quronest.com/",
         description: "Local Quronest server",
-      }
+      },
     ],
     components: {
       ...components.components,
