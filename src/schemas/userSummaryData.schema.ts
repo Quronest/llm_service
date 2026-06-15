@@ -55,6 +55,6 @@ export const userSummaryGenerationValidationSchema = z.object({
     personal_data: personalDataValidationSchema
 });
 
-export type UserContextDataType = z.infer<typeof userSummaryGenerationValidationSchema>;
+export type UserSummaryGenerateDataType = z.infer<typeof userSummaryGenerationValidationSchema>;
 
 export const swaggerUserSummaryGenerationSchema = userSummaryGenerationValidationSchema;

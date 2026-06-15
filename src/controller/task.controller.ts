@@ -12,7 +12,7 @@ export const generateUserTasks = asyncHandler(
     const { userContext } = req.body || {};
     const validateData = await validateZodSchema(
       userContextValidationSchema,
-      req.body
+      userContext
     );
 
     const llm = geminiLLM();

@@ -10,6 +10,7 @@ import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
 import { userContextPrompt } from "../prompts/userContext.prompt";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
 import { type Group, type Phase, taskTypeEnumList } from "../enums";
+import { LlmWithConfig } from "../types/llmConfigType";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -32,10 +33,6 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 type PlanResponse = z.infer<typeof planSchema>;
-
-type LlmWithConfig = {
-  withConfig: (config: Record<string, unknown>) => RunnableLike;
-};
 
 type TaskUserContext = Record<string, unknown> & {
   current_group: Group;

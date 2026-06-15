@@ -8,6 +8,8 @@ import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
 import { userSummaryPrompt } from "../prompts/userSummary.prompt";
 import { createModuleLogger } from "../utils/logger";
 import { userGroupEnumList, phaseEnumList } from "../enums";
+import { UserSummaryGenerateDataType } from "../schemas/userSummaryData.schema";
+import { LlmWithConfig } from "../types/llmConfigType";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -18,25 +20,6 @@ const userSummarySchema = z.object({
 });
 
 const parser = StructuredOutputParser.fromZodSchema(userSummarySchema);
-
-type LlmWithConfig = {
-  withConfig: (config: Record<string, unknown>) => RunnableLike;
-};
-
-type UserSummaryInput = {
-  academic_data?: {
-    institute_name?: string;
-    grade?: string;
-    course?: string;
-    description?: string;
-    interested_domains?: string[];
-  };
-  personal_data?: {
-    skills?: string[];
-    primary_goal?: string;
-    experience?: string;
-  };
-};
 
 const combinedSystemText = `
 ${groupDetailsPrompt}
@@ -56,10 +39,10 @@ export const createUserSummaryChain = (llm: LlmWithConfig) => {
 };
 
 export const generateUserSummary = async (
-  data: UserSummaryInput,
+  data: UserSummaryGenerateDataType,
   llm: LlmWithConfig,
 ) => {
-  const { academic_data = {}, personal_data = {} } = data;
+  const { academic_data, personal_data } = data;
 
   const {
     institute_name,
@@ -69,11 +52,7 @@ export const generateUserSummary = async (
     interested_domains = [],
   } = academic_data;
 
-  const {
-    skills = [],
-    primary_goal = "N/A",
-    experience = "N/A",
-  } = personal_data;
+  const { skills = [], primary_goal, experience } = personal_data;
 
   log.info("creating chain...");
   const chain = createUserSummaryChain(llm);

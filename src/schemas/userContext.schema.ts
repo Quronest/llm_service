@@ -6,12 +6,10 @@ import {
   phaseEnumList,
   engagementLevelEnumList,
   burnoutRiskEnumList,
-  booleanStringEnumList,
   burnoutRisk,
   userGroup,
   phase,
   engagementLevel,
-  booleanString,
 } from "../enums";
 
 extendZodWithOpenApi(z);
@@ -38,9 +36,7 @@ export const userContextValidationSchema = z
 
     is_on_track: z.boolean().openapi({ example: true }),
 
-    needs_intervention: z
-      .enum(booleanStringEnumList)
-      .openapi({ example: booleanString.FALSE }),
+    needs_intervention: z.boolean().openapi({ example: false }),
 
     summary: z.string().openapi({}),
   })
