@@ -8,12 +8,14 @@ import {
 import { userContextValidationSchema } from "../schemas/userContext.schema";
 import { swaggerUserSummaryGenerationSchema } from "../schemas/userSummaryData.schema";
 import { apiResponseSchema } from "../schemas/apiResponse.schema";
+import { readingTaskContextValidationSchema } from "../schemas/readingTaskContext.schema";
 
 const registry = new OpenAPIRegistry();
 
 registry.register("UserContext", userContextValidationSchema);
 registry.register("UserSummaryData", swaggerUserSummaryGenerationSchema);
 registry.register("ApiResponse", apiResponseSchema);
+registry.register("ReadingTaskContext", readingTaskContextValidationSchema);
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const components = generator.generateComponents();
