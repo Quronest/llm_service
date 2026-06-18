@@ -19,12 +19,7 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - userContext
- *             properties:
- *               userContext:
- *                 $ref: '#/components/schemas/UserContext'
+*               $ref: '#/components/schemas/TaskCreateContxt'
  *     responses:
  *       200:
  *         description: 7-day task plan generated successfully

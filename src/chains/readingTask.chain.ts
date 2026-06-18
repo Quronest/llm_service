@@ -1,4 +1,3 @@
-import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import z from "zod";
 import { LlmWithConfig } from "../types/llmConfigType";
@@ -6,7 +5,7 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 
 export const sourceSchema = z.object({
   name: z.string(),
-  url: z.string().url(),
+  url: z.url(),
 });
 
 export const questionnaireSchema = z.object({
@@ -32,7 +31,7 @@ export const generateReadingTaskResponseSchema = z.object({
 
 const urlExtractionSchema = z.object({
   urls: z
-    .array(z.string().url())
+    .array(z.url())
     .describe("List of relevant URLs found based on the context"),
 });
 
@@ -56,10 +55,6 @@ export const GraphState = Annotation.Root({
     default: () => null,
   }),
 });
-
-const parser = StructuredOutputParser.fromZodSchema(
-  generateReadingTaskResponseSchema,
-);
 
 export const createReadingTaskChain = async (
   input: { readingContext: any },

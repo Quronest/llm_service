@@ -46,4 +46,4 @@ export const userContextValidationSchema = z
   })
   .openapi("UserContext");
 
-export type userContextType = z.infer<typeof userContextValidationSchema>;
+export type UserContextType = z.infer<typeof userContextValidationSchema>;

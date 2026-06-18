@@ -5,19 +5,18 @@ import { generateTasks } from "../chains/task.chain";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { validateZodSchema } from "../utils/validateZodSchema";
-import { userContextValidationSchema } from "../schemas/userContext.schema";
+import { taskCreateInputValidationSchema } from "../schemas/taskGenerateInputValidation.schema";
 
 export const generateUserTasks = asyncHandler(
   async (req: Request, res: Response) => {
-    const { userContext } = req.body || {};
     const validateData = await validateZodSchema(
-      userContextValidationSchema,
-      userContext,
+      taskCreateInputValidationSchema,
+      req.body,
     );
 
     const llm = geminiLLM();
 
-    const response = await generateTasks({ userContext: validateData }, llm);
+    const response = await generateTasks(validateData, llm);
 
     return res
       .status(200)

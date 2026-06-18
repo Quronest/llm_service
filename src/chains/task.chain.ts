@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
-import type { RunnableLike } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 import { createModuleLogger } from "../utils/logger";
@@ -11,6 +10,7 @@ import { userContextPrompt } from "../prompts/userContext.prompt";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
 import { type Group, type Phase, taskTypeEnumList } from "../enums";
 import { LlmWithConfig } from "../types/llmConfigType";
+import { TaskCreateInputType } from "../schemas/taskGenerateInputValidation.schema";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -33,15 +33,6 @@ const planSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);
 type PlanResponse = z.infer<typeof planSchema>;
-
-type TaskUserContext = Record<string, unknown> & {
-  current_group: Group;
-  current_phase: Phase;
-};
-
-type GenerateTasksInput = {
-  userContext: TaskUserContext;
-};
 
 const CombinedSystemText = (group: Group, phase: Phase) => {
   const progressionRules = groupPahseRulesPromptMap[group][phase];
@@ -72,7 +63,7 @@ export const createTasksChain = (
 };
 
 export const generateTasks = async (
-  data: GenerateTasksInput,
+  data: TaskCreateInputType,
   llm: LlmWithConfig,
 ) => {
   const { userContext } = data;
