@@ -1,7 +1,14 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import z from "zod";
 import { LlmWithConfig } from "../types/llmConfigType";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { findUrlsPrompt } from "../prompts/findUrls.prompt";
+import { generateReadingTasksPrompt } from "../prompts/generateReadingTasks.prompt";
+import { ReadingTaskContextValidationType } from "../schemas/readingTaskContext.schema";
+import { createModuleLogger } from "../utils/logger";
+import { GoogleGenAI } from "@google/genai";
+
+const log = createModuleLogger(import.meta.url);
 
 export const sourceSchema = z.object({
   name: z.string(),
@@ -35,9 +42,15 @@ const urlExtractionSchema = z.object({
     .describe("List of relevant URLs found based on the context"),
 });
 
+export type UrlExtractionSchemaType = z.infer<typeof urlExtractionSchema>;
+
 export type GenerateReadingTaskResponseType = z.infer<
   typeof generateReadingTaskResponseSchema
 >;
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY!,
+});
 
 // We use LangGraph's Annotation API to define the state object that flows through our nodes.
 export const GraphState = Annotation.Root({
@@ -57,25 +70,19 @@ export const GraphState = Annotation.Root({
 });
 
 export const createReadingTaskChain = async (
-  input: { readingContext: any },
+  input: { readingContext: ReadingTaskContextValidationType },
   llm: LlmWithConfig,
 ) => {
   const findUrlsNode = async (state: typeof GraphState.State) => {
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        "system",
-        "You are an expert researcher. Based on the given context, identify 3 to 5 highly relevant and authoritative web URLs that would contain detailed information about this topic. Return ONLY real, valid URLs.",
-      ],
-      ["human", "Context: {context}"],
-    ]);
+    const prompt = PromptTemplate.fromTemplate(findUrlsPrompt);
 
-    const structuredLlm = (llm as any).withStructuredOutput(
-      urlExtractionSchema,
-    );
+    const structuredLlm = llm.withStructuredOutput(urlExtractionSchema);
     const chain = prompt.pipe(structuredLlm);
 
-    const response = await chain.invoke({ context: state.context });
-    return { urls: (response as z.infer<typeof urlExtractionSchema>).urls };
+    const response: UrlExtractionSchemaType = await chain.invoke({
+      context: state.context,
+    });
+    return { urls: response.urls };
   };
 
   const scrapeUrlsNode = async (state: typeof GraphState.State) => {
@@ -83,33 +90,42 @@ export const createReadingTaskChain = async (
 
     for (const url of state.urls) {
       try {
-        const response = await fetch(url);
-        const html = await response.text();
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-pro",
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `Read the content from this webpage and extract all the important information.\n\n${url}`,
+                },
+              ],
+            },
+          ],
+          config: {
+            tools: [
+              {
+                urlContext: {},
+              },
+            ],
+          },
+        });
 
-        // Very basic extraction: grabbing text and stripping HTML.
-        // For production, consider using 'cheerio' to parse only <p>, <article>, etc.
-        const cleanText = html.replace(/<[^>]*>?/gm, "").substring(0, 5000);
-        contents.push(`Content from ${url}:\n${cleanText}`);
-      } catch (error) {
-        console.warn(`Failed to fetch ${url}:`, error);
+        contents.push(`Content from ${url}:\n${response.text}`);
+      } catch (err) {
+        log.warn(`Failed to process ${url}: ${err}`);
       }
     }
-    return { scrapedContent: contents };
+
+    return {
+      scrapedContent: contents,
+    };
   };
 
   const generateTaskNode = async (state: typeof GraphState.State) => {
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        "system",
-        "You are an expert curriculum designer. Using the original context and the scraped web content, generate a comprehensive reading task. You must follow the requested JSON schema perfectly.",
-      ],
-      [
-        "human",
-        "Original Context: {context}\n\nScraped Material:\n{scrapedContent}",
-      ],
-    ]);
+    const prompt = PromptTemplate.fromTemplate(generateReadingTasksPrompt);
 
-    const structuredLlm = (llm as any).withStructuredOutput(
+    const structuredLlm = llm.withStructuredOutput(
       generateReadingTaskResponseSchema,
     );
     const chain = prompt.pipe(structuredLlm);
