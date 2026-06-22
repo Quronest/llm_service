@@ -6,7 +6,7 @@ import { findUrlsPrompt } from "../prompts/findUrls.prompt";
 import { generateReadingTasksPrompt } from "../prompts/generateReadingTasks.prompt";
 import { ReadingTaskContextValidationType } from "../schemas/readingTaskContext.schema";
 import { createModuleLogger } from "../utils/logger";
-import { GoogleGenAI } from "@google/genai";
+import { extractURLText } from "../tools/extractURLText.tool";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -28,7 +28,7 @@ export const questionnaireSchema = z.object({
 export const generateReadingTaskResponseSchema = z.object({
   markdown_content: z.string(),
 
-  sources: z.array(sourceSchema).min(3),
+  sources: z.array(sourceSchema).min(3).max(5),
 
   youtube_video_summary: z.string().optional(),
   youtube_video_url: z.string().optional(),
@@ -47,10 +47,6 @@ export type UrlExtractionSchemaType = z.infer<typeof urlExtractionSchema>;
 export type GenerateReadingTaskResponseType = z.infer<
   typeof generateReadingTaskResponseSchema
 >;
-
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
 
 // We use LangGraph's Annotation API to define the state object that flows through our nodes.
 export const GraphState = Annotation.Root({
@@ -90,36 +86,23 @@ export const createReadingTaskChain = async (
 
     for (const url of state.urls) {
       try {
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-pro",
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Read the content from this webpage and extract all the important information.\n\n${url}`,
-                },
-              ],
-            },
-          ],
-          config: {
-            tools: [
-              {
-                urlContext: {},
-              },
-            ],
-          },
-        });
+        const response = await fetch(url);
 
-        contents.push(`Content from ${url}:\n${response.text}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const html = await response.text();
+
+        const filteredText = extractURLText(html);
+
+        contents.push(`Content from ${url}:\n${filteredText}`);
       } catch (err) {
         log.warn(`Failed to process ${url}: ${err}`);
       }
     }
-
-    return {
-      scrapedContent: contents,
-    };
+    
+    return { contents };
   };
 
   const generateTaskNode = async (state: typeof GraphState.State) => {
