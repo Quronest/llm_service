@@ -54,7 +54,7 @@ router.post("/generate-tasks", verifyToken, generateUserTasks);
  *               - readingContext
  *             properties:
  *               readingContext:
- *                 $ref: '#/components/schemas/ReadingTaskContext'
+ *                 $ref: '#/components/schemas/TaskGenerateContext'
  *     responses:
  *       200:
  *         description: Reading task generated successfully

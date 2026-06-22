@@ -4,7 +4,7 @@ import { LlmWithConfig } from "../types/llmConfigType";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { findUrlsPrompt } from "../prompts/findUrls.prompt";
 import { generateReadingTasksPrompt } from "../prompts/generateReadingTasks.prompt";
-import { ReadingTaskContextValidationType } from "../schemas/readingTaskContext.schema";
+import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { createModuleLogger } from "../utils/logger";
 import { extractURLText } from "../tools/extractURLText.tool";
 
@@ -66,7 +66,7 @@ export const GraphState = Annotation.Root({
 });
 
 export const createReadingTaskChain = async (
-  input: { readingContext: ReadingTaskContextValidationType },
+  input: { readingContext: TaskGenerateValidationType },
   llm: LlmWithConfig,
 ) => {
   const findUrlsNode = async (state: typeof GraphState.State) => {
