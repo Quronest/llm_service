@@ -1,6 +1,6 @@
 import { createReadingTaskChain } from "../chains/readingTask.chain";
 import geminiLLM from "../llm/gemini.llm";
-import { readingTaskContextValidationSchema } from "../schemas/readingTaskContext.schema";
+import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { validateZodSchema } from "../utils/validateZodSchema";
@@ -11,7 +11,7 @@ export const generateReadingTasks = asyncHandler(
     const { readingContext } = req.body || {};
 
     const validateData = await validateZodSchema(
-      readingTaskContextValidationSchema,
+      taskGenerateValidationSchema,
       readingContext,
     );
 
