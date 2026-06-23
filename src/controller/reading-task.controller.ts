@@ -3,19 +3,14 @@ import geminiLLM from "../llm/gemini.llm";
 import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
-import logger from "../utils/logger";
 import { validateZodSchema } from "../utils/validateZodSchema";
 import { Request, Response } from "express";
 
 export const generateReadingTasks = asyncHandler(
   async (req: Request, res: Response) => {
-    const { readingContext } = req.body || {};
-
-    logger.error(readingContext);
-
     const validateData = await validateZodSchema(
       taskGenerateValidationSchema,
-      readingContext,
+      req.body,
     );
 
     const llm = geminiLLM();
