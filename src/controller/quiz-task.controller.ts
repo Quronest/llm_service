@@ -1,34 +1,26 @@
-import { createReadingTaskChain } from "../chains/readingTask.chain";
+import { Request, Response } from "express";
 import geminiLLM from "../llm/gemini.llm";
 import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
-import logger from "../utils/logger";
 import { validateZodSchema } from "../utils/validateZodSchema";
-import { Request, Response } from "express";
+import { createQuizTaskChain } from "../chains/quizTask.chain";
 
-export const generateReadingTasks = asyncHandler(
+export const generateQuizTasks = asyncHandler(
   async (req: Request, res: Response) => {
-    const { readingContext } = req.body || {};
-
-    logger.error(readingContext);
+    const { quizContext } = req.body || {};
 
     const validateData = await validateZodSchema(
       taskGenerateValidationSchema,
-      readingContext,
+      quizContext,
     );
 
     const llm = geminiLLM();
-
-    const response = await createReadingTaskChain(
-      { readingContext: validateData },
-      llm,
-    );
-
+    const response = await createQuizTaskChain({ quizContext: validateData }, llm);
     return res
       .status(200)
       .json(
-        new ApiResponse(200, response, "Reading tasks generated successfully"),
+        new ApiResponse(200, response, "Quiz tasks generated successfully"),
       );
   },
 );

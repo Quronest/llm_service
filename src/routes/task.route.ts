@@ -3,6 +3,7 @@ import { Router } from "express";
 import { generateUserTasks } from "../controller/task.controller";
 import { generateReadingTasks } from "../controller/reading-task.controller";
 import { verifyToken } from "../middlewares/verifyToken";
+import { generateQuizTasks } from "../controller/quiz-task.controller";
 
 const router = Router();
 
@@ -70,5 +71,7 @@ router.post("/generate-tasks", verifyToken, generateUserTasks);
  *                       description: The generated reading task details
  */
 router.post("/generate-reading-tasks", verifyToken, generateReadingTasks);
+
+router.post("/generate-quiz-tasks", verifyToken, generateQuizTasks);
 
 export default router;
