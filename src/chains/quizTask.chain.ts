@@ -18,17 +18,15 @@ export type GenerateQuizTaskResponseType = z.infer<
 
 export const GraphState = Annotation.Root({
   context: Annotation<string>(), // Initial input context
-  plan: Annotation<string[]>({
+  plan: Annotation<string>({
     reducer: (state, update) => update,
-    default: () => [],
+    default: () => "",
   }),
   finalOutput: Annotation<GenerateQuizTaskResponseType | null>({
     reducer: (state, update) => update,
     default: () => null,
   }),
 });
-
-logger.info("before entering chain ...")
 
 export const createQuizTaskChain = async (
   input: { quizContext: TaskGenerateValidationType },
