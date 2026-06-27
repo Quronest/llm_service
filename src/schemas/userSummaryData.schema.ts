@@ -16,6 +16,15 @@ export const personalDataValidationSchema = z
     experience: z.string().openapi({
       example: "Built 3 independent projects, completed 2 online courses",
     }),
+
+    interested_domains: z.array(z.string()).openapi({
+      example: ["Web Development", "Cloud Computing", "DevOps"],
+    }),
+
+    description: z.string().openapi({
+      example:
+        "Currently pursuing engineering degree with focus on web development and cloud technologies.",
+    }),
   })
   .openapi("PersonalData");
 
@@ -38,10 +47,6 @@ export const academicDataValidationSchema = z
     description: z.string().openapi({
       example:
         "Currently pursuing engineering degree with focus on web development and cloud technologies.",
-    }),
-
-    interested_domains: z.array(z.string()).openapi({
-      example: ["Web Development", "Cloud Computing", "DevOps"],
     }),
   })
   .openapi("AcademicData");
