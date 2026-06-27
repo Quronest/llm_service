@@ -45,9 +45,7 @@ export const verifyToken = async (
     }
 
     const token = authHeader.split(" ")[1];
-    log.debug("token - " + token);
     const PUBLIC_KEY = await getPublicKey();
-    log.debug("Key - " + PUBLIC_KEY);
 
     // Verify RSA token
     const decoded = jwt.verify(token, PUBLIC_KEY, {

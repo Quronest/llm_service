@@ -44,15 +44,14 @@ export const generateUserSummary = async (
 ) => {
   const { academic_data, personal_data } = data;
 
-  const {
-    institute_name,
-    grade,
-    course,
-    description,
-    interested_domains = [],
-  } = academic_data;
+  const { institute_name, grade, course, description } = academic_data;
 
-  const { skills = [], primary_goal, experience } = personal_data;
+  const {
+    skills = [],
+    primary_goal,
+    experience,
+    interested_domains = [],
+  } = personal_data;
 
   log.info("creating chain...");
   const chain = createUserSummaryChain(llm);
