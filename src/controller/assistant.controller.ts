@@ -1,15 +1,19 @@
-import type { Request, Response } from "express";
+import { response, type Request, type Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { createModuleLogger } from "../utils/logger";
 import { validateZodSchema } from "../utils/validateZodSchema";
 import { chatContextSchema } from "../schemas/assistant.schema";
-import { createAssistantStream } from "../chains/assistant.chain"; // Adjust path as needed
-import { write } from "node:fs";
+import { createAssistantStream } from "../chains/assistant.chain"; 
 
 const log = createModuleLogger(import.meta.url);
 
+// Extend the Express Response to include the flush method added by middleware
+interface SSECompressedResponse extends Response {
+  flush?: () => void;
+}
+
 export const chatWithAssistantStream = asyncHandler(
-  async (req: Request, res: Response) => {
+  async (req: Request, res: SSECompressedResponse) => {
     const validatedData = await validateZodSchema(chatContextSchema, req.body);
 
     const { userPrompt, chatContext, userContext } = validatedData;
@@ -24,11 +28,13 @@ export const chatWithAssistantStream = asyncHandler(
 
     res.flushHeaders();
 
+    const userContextString = JSON.stringify(userContext);
+
     try {
       const stream = await createAssistantStream({
         userPrompt,
         chatContext,
-        userContext,
+        userContext: userContextString
       });
 
       for await (const chunk of stream) {
@@ -38,8 +44,8 @@ export const chatWithAssistantStream = asyncHandler(
           const payload = JSON.stringify({ content: text });
           res.write(`data: ${payload}\n\n`);
 
-          if (typeof (res as any).flush === "function") {
-            (res as any).flush();
+          if (typeof res.flush === "function") {
+            res.flush();
           }
         }
       }

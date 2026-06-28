@@ -68,11 +68,8 @@ export const generateTasks = async (
 ) => {
   const { userContext } = data;
   const { current_group: group, current_phase: phase } = userContext;
-  log.info("creating tasks chain...");
 
   const chain = createTasksChain(llm, group, phase);
-
-  log.info("Invoking tasks chain...");
 
   const rawResponse = (await chain.invoke({
     ...userContext,

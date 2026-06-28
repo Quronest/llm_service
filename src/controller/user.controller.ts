@@ -18,10 +18,8 @@ export const getUserSummary = asyncHandler(
       req.body,
     );
 
-    log.info("ready llm...");
     const llm = geminiLLM();
 
-    log.info("generating usersummary...");
     const response = await generateUserSummary(validateData, llm);
 
     return res

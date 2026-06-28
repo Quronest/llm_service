@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { userContextValidationSchema } from "./userContext.schema";
 
 extendZodWithOpenApi(z);
 
@@ -13,10 +14,7 @@ export const chatContextSchema = z
       description: "Previous conversation or background information to maintain context",
       example: "The user is studying computer science and has seen a few programming examples.",
     }),
-    userContext: z.string().openapi({
-      description: "Information about the user's overall progress, current group, phase, and learning state",
-      example: "User is in beginner group, phase 2, completed 5 tasks, current burnout risk: low",
-    }),
+    userContext: userContextValidationSchema
   })
   .openapi("AssistantChat");
 

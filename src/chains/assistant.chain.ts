@@ -1,12 +1,12 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import geminiLLM from "../llm/gemini.llm";
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
+import { assistantSystemPrompt } from "../prompts/assistant.prompt";
 
 interface AssistantChainParams {
   userPrompt: string;
   chatContext?: string;
   userContext?: string;
-  groupContext?: string;
 }
 
 export const createAssistantStream = async (params: AssistantChainParams) => {
@@ -14,18 +14,17 @@ export const createAssistantStream = async (params: AssistantChainParams) => {
     userPrompt,
     chatContext = "",
     userContext = "",
-    groupContext = "",
   } = params;
 
-  const promptTemplate = ChatPromptTemplate.fromMessages([ 
-    [
-      "system",
-      `
-${groupDetailsPrompt}  
+  const SYSTEM_PROMPT=`
+${assistantSystemPrompt}
+${groupDetailsPrompt} 
 {userContext}
 {chatContext}
-      `.trim(),
-    ],
+`
+
+const promptTemplate = ChatPromptTemplate.fromMessages([ 
+    ["system", SYSTEM_PROMPT],
     ["user", "{userPrompt}"],
   ]);
 
@@ -37,6 +36,5 @@ ${groupDetailsPrompt}
     userPrompt,
     chatContext,
     userContext,
-    groupContext,
   });
 };
