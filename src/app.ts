@@ -7,6 +7,7 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger-config";
 import userRouter from "./routes/user.route";
 import taskRouter from "./routes/task.route";
+import assistantRouter from "./routes/assistant.route";
 
 const app = express();
 
@@ -28,5 +29,6 @@ app.use(morgan("dev"));
 
 app.use("/llm/api/v1/user", userRouter);
 app.use("/llm/api/v1/tasks", taskRouter);
+app.use("/llm/api/v1/assistant", assistantRouter);
 
 export { app };

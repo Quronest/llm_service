@@ -31,7 +31,7 @@ function getPublicKey(): string {
   }
 }
 
-export const verifyToken = async (
+export const  verifyToken = async (
   req: Request,
   _res: Response,
   next: NextFunction,

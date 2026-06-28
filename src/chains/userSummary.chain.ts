@@ -53,10 +53,7 @@ export const generateUserSummary = async (
     interested_domains = [],
   } = personal_data;
 
-  log.info("creating chain...");
   const chain = createUserSummaryChain(llm);
-
-  log.info("Invoking in chain...");
 
   return await chain.invoke({
     institute_name,
