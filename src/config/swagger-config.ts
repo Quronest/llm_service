@@ -10,7 +10,7 @@ import { swaggerUserSummaryGenerationSchema } from "../schemas/userSummaryData.s
 import { apiResponseSchema } from "../schemas/apiResponse.schema";
 import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { taskCreateInputValidationSchema } from "../schemas/taskGenerateInputValidation.schema";
-import { chatContextSchema } from "../schemas/assistant.schema";
+import { assistantchatContextValidationSchema } from "../schemas/assistant.schema";
 
 const registry = new OpenAPIRegistry();
 
@@ -19,7 +19,8 @@ registry.register("TaskCreateContxt", taskCreateInputValidationSchema);
 registry.register("UserSummaryData", swaggerUserSummaryGenerationSchema);
 registry.register("ApiResponse", apiResponseSchema);
 registry.register("TaskGenerateContext", taskGenerateValidationSchema);
-registry.register("AssistantChat", chatContextSchema);
+registry.register("AssistantChat", assistantchatContextValidationSchema);
+
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const components = generator.generateComponents();

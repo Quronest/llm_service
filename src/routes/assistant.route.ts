@@ -19,19 +19,6 @@ const router = Router();
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/AssistantChat'
- *           example:
- *             userPrompt: Explain recursion in simple terms.
- *             chatContext: The user is studying computer science and has seen a few programming examples.
- *             userContext:
- *               current_group: GROUP_A
- *               current_phase: PHASE_1
- *               current_stage: Independent Project Builder
- *               current_day: 14
- *               engagement_level: High
- *               burnout_risk: Low
- *               is_on_track: true
- *               needs_intervention: false
- *               summary: The user is progressing well and is working through independent projects.
  *     responses:
  *       200:
  *         description: SSE (Server-Sent Events) stream of responses

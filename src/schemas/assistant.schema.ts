@@ -4,7 +4,7 @@ import { userContextValidationSchema } from "./userContext.schema";
 
 extendZodWithOpenApi(z);
 
-export const chatContextSchema = z
+export const assistantchatContextValidationSchema = z
   .object({
     userPrompt: z.string().openapi({
       description: "The user's question or message to the assistant",
@@ -18,4 +18,7 @@ export const chatContextSchema = z
   })
   .openapi("AssistantChat");
 
-export type AssistantChatType = z.infer<typeof chatContextSchema>;
+export type AssistantChatType = z.infer<typeof assistantchatContextValidationSchema>;
+
+export const swaggerAssistantChatSchema =
+  assistantchatContextValidationSchema;

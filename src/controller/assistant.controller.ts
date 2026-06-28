@@ -2,7 +2,7 @@ import { response, type Request, type Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { createModuleLogger } from "../utils/logger";
 import { validateZodSchema } from "../utils/validateZodSchema";
-import { chatContextSchema } from "../schemas/assistant.schema";
+import { assistantchatContextValidationSchema } from "../schemas/assistant.schema";
 import { createAssistantStream } from "../chains/assistant.chain"; 
 
 const log = createModuleLogger(import.meta.url);
@@ -14,7 +14,7 @@ interface SSECompressedResponse extends Response {
 
 export const chatWithAssistantStream = asyncHandler(
   async (req: Request, res: SSECompressedResponse) => {
-    const validatedData = await validateZodSchema(chatContextSchema, req.body);
+    const validatedData = await validateZodSchema(assistantchatContextValidationSchema, req.body);
 
     const { userPrompt, chatContext, userContext } = validatedData;
 
