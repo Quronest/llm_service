@@ -5,7 +5,7 @@ import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 extendZodWithOpenApi(z);
 
 export const taskCreateInputValidationSchema = z.object({
-  userContext: userContextValidationSchema,
+  user_context: userContextValidationSchema,
 });
 
 export type TaskCreateInputType = z.infer<
