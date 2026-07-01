@@ -6,4 +6,3 @@ export * from "./taskTag.enum";
 export * from "./level.enum";
 export * from "./engagementLevel.enum";
 export * from "./burnoutRisk.enum";
-export * from "./booleanString.enum";

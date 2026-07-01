@@ -25,11 +25,14 @@ const taskSchema = z.object({
   title: z.string(),
   type: z.enum(taskTypeEnumList),
   description: z.string(),
-  expectedCompletionTime: z.string().min(1),
   domain: z.enum(domainEnumList),
-  sub_Domains: z.array(z.string()).min(1),
-  task_tags: z.array(z.enum(taskTagEnumList)).min(1).max(4),
+  subdomains: z.array(z.string()).min(1),
+  tags: z.array(z.enum(taskTagEnumList)).min(1).max(4),
   level: z.enum(levelEnumList),
+  expected_total_minutes: z
+    .number()
+    .min(1)
+    .describe("Expected time to complete the task in minutes"),
 });
 
 const daySchema = z.object({
@@ -56,7 +59,7 @@ ${generateDailyTaskPrompt}
 `;
 };
 
-export const createTasksChain = (
+export const createDailyPlanChain = (
   llm: LlmWithConfig,
   group: Group,
   phase: Phase,
@@ -73,14 +76,14 @@ export const createTasksChain = (
   ]);
 };
 
-export const generateTasks = async (
+export const generatePlan = async (
   data: TaskCreateInputType,
   llm: LlmWithConfig,
 ) => {
-  const { userContext } = data;
+  const { user_context: userContext } = data;
   const { current_group: group, current_phase: phase } = userContext;
 
-  const chain = createTasksChain(llm, group, phase);
+  const chain = createDailyPlanChain(llm, group, phase);
 
   const rawResponse = (await chain.invoke({
     ...userContext,
@@ -89,10 +92,10 @@ export const generateTasks = async (
 
   const transformedPlan = rawResponse.plan.map((dayItem, dayIndex) => {
     return {
-      day: dayIndex + 1,
+      day_number: dayIndex + 1,
       ...dayItem,
       tasks: dayItem.tasks.map((taskItem, taskIndex) => ({
-        task: taskIndex + 1,
+        task_number: taskIndex + 1,
         ...taskItem,
       })),
     };

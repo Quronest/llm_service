@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { generateUserTasks } from "../controller/task.controller";
+import { generateDailyPlan } from "../controller/task.controller";
 import {
   generateReadingTasks,
   generateQuizTasks,
@@ -37,7 +37,7 @@ const router = Router();
  *                       type: object
  *                       description: The generated 7-day plan details
  */
-router.post("/generate-tasks", verifyToken, generateUserTasks);
+router.post("/generate-daily-plan", verifyToken, generateDailyPlan);
 
 /**
  * @openapi

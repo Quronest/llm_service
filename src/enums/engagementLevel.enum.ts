@@ -1,7 +1,8 @@
 export const engagementLevel = {
-  LOW: "Low",
-  MEDIUM: "Medium",
-  HIGH: "High",
+  LOW: "LOW",
+  MEDIUM: "MEDIUM",
+  HIGH: "HIGH",
+  UNSET: "UNSET",
 } as const;
 
 export type EngagementLevel =

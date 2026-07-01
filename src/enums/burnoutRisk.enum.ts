@@ -1,7 +1,8 @@
 export const burnoutRisk = {
-  LOW: "Low",
-  MEDIUM: "Medium",
-  HIGH: "High",
+  LOW: "LOW",
+  MEDIUM: "MEDIUM",
+  HIGH: "HIGH",
+  UNSET: "UNSET",
 } as const;
 
 export type BurnoutRisk = (typeof burnoutRisk)[keyof typeof burnoutRisk];

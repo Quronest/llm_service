@@ -22,13 +22,22 @@ export const userContextValidationSchema = z
 
     current_phase: z.enum(phaseEnumList).openapi({ example: phase.PHASE_1 }),
 
-    current_stage: z.string().openapi({
-      example: "Independent Project Builder",
-    }),
+    current_stage: z
+      .string()
+      .openapi({
+        example: "Independent Project Builder",
+      })
+      .nullable(),
 
-    current_day: z.number().int().nonnegative().openapi({
-      example: 14,
-    }),
+    current_day: z
+      .number()
+      .int()
+      .nonnegative()
+      .openapi({
+        example: 14,
+      })
+      .optional()
+      .nullable(),
 
     engagement_level: z
       .enum(engagementLevelEnumList)

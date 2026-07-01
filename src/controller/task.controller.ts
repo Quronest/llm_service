@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 import geminiLLM from "../llm/gemini.llm";
-import { generateTasks } from "../chains/task.chain";
+import { generatePlan } from "../chains/task.chain";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { validateZodSchema } from "../utils/validateZodSchema";
@@ -11,7 +11,7 @@ import { createQuizTaskChain } from "../chains/quizTask.chain";
 import { createReadingTaskChain } from "../chains/readingTask.chain";
 import { StatusCodes } from "http-status-codes";
 
-export const generateUserTasks = asyncHandler(
+export const generateDailyPlan = asyncHandler(
   async (req: Request, res: Response) => {
     const validateData = await validateZodSchema(
       taskCreateInputValidationSchema,
@@ -20,7 +20,7 @@ export const generateUserTasks = asyncHandler(
 
     const llm = geminiLLM();
 
-    const response = await generateTasks(validateData, llm);
+    const response = await generatePlan(validateData, llm);
 
     return res
       .status(StatusCodes.OK)

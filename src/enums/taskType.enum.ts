@@ -1,8 +1,8 @@
 export const taskType = {
-  READING: "Reading",
-  QUIZ: "Quiz",
-  CODING: "Coding",
-  DESCRIPTIVE: "Descriptive",
+  READING: "READING",
+  QUIZ: "QUIZ",
+  CODING: "CODING",
+  DESCRIPTIVE: "DESCRIPTIVE",
 } as const;
 
 export type TaskType = (typeof taskType)[keyof typeof taskType];
