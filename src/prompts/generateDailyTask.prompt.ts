@@ -27,13 +27,17 @@ The plan must:
    - title
    - type → must be one of:
      - "Reading"
-     - "Practice"
-     - "Test"
+     - "Quiz"
+     - "Coding"
+     - "Descriptive"
    - description (clear actionable instruction)
    - expectedCompletionTime (e.g., "30 minutes", "1 hour")
+   - domain (one of the allowed domain values)
+   - task_tags (an array of 1 to 4 relevant tags)
+   - level (must be one of: "EASY", "MEDIUM", "HARD")
 
 4. Task Design Rules:
-   - Mix all three types: Reading, Practice, Test
+   - Mix the task types across the week: Reading, Quiz, Coding, and Descriptive
    - Keep tasks realistic (total 1–3 hours per day)
    - Avoid generic tasks — make them specific and actionable
 
@@ -63,7 +67,10 @@ Example structure:
           "title": "Task title",
           "type": "Reading",
           "description": "Detailed explanation of what to do",
-          "expectedCompletionTime": "45 minutes"
+          "expectedCompletionTime": "45 minutes",
+          "domain": "FRONTEND",
+          "task_tags": ["FOUNDATION", "READING"],
+          "level": "EASY"
         }}
       ]
     }}
@@ -77,6 +84,9 @@ Example structure:
 - Exactly 7 days
 - Each day must have at least 3 tasks
 - Task types must strictly be: "Reading", "Quiz", "Coding", or "Descriptive".
+- domain must be one of the allowed enum values.
+- task_tags must be an array of allowed enum values.
+- level must be exactly one of: "EASY", "MEDIUM", "HARD".
 - Every task must include "expectedCompletionTime"
 
 CRITICAL: You must output ONLY valid JSON. Do not include any conversational text, greetings, or markdown formatting blocks (like \\\`\\\`\\\`json). Just the raw JSON object.`;
