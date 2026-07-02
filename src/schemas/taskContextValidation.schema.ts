@@ -1,5 +1,6 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import z from "zod";
+import { domainEnumList } from "../enums/domain.enum";
 
 extendZodWithOpenApi(z);
 
@@ -11,12 +12,20 @@ export const taskContextValidationSchema = z.object({
     example:
       "Currently pursuing engineering degree with focus on web development and cloud technologies.",
   }),
-  domain: z.array(z.string()).openapi({
-    example: ["Web Development", "Cloud Computing", "DevOps"],
+  domain: z.enum(domainEnumList).openapi({
+    example: "Web Development",
+  }),
+  subdomains: z.array(z.string()).openapi({
+    example: [
+      "Frontend Development",
+      "Backend Development",
+      "Database Management",
+    ],
   }),
   tags: z.array(z.string()).openapi({
     example: [""],
   }),
+  // level goes here
 });
 
 export type TaskContextValidationType = z.infer<

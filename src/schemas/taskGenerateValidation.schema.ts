@@ -8,8 +8,8 @@ extendZodWithOpenApi(z);
 
 export const taskGenerateValidationSchema = z
   .object({
-    taskContext: taskContextValidationSchema,
-    userJourneyContext: userContextValidationSchema,
+    task_context: taskContextValidationSchema,
+    user_context: userContextValidationSchema,
   })
   .openapi("TaskGenerateContext");
 
