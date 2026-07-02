@@ -35,6 +35,7 @@ The plan must:
    - domain (one of the allowed domain values)
    - task_tags (an array of 1 to 4 relevant tags)
    - level (must be one of: "EASY", "MEDIUM", "HARD")
+  - subdomains (optional list of more specific sub-areas within the domain)
 
 4. Task Design Rules:
    - Mix the task types across the week: Reading, Quiz, Coding, and Descriptive
@@ -65,10 +66,11 @@ Example structure:
       "tasks": [
         {{
           "title": "Task title",
-          "type": "Reading",
-          "description": "Detailed explanation of what to do",
+          "task_tags": ["FOUNDATION", "READING"],
+          "level": "EASY",
           "expectedCompletionTime": "45 minutes",
           "domain": "FRONTEND",
+          "sub_Domains": ["React Hooks", "State Management"]
           "task_tags": ["FOUNDATION", "READING"],
           "level": "EASY"
         }}

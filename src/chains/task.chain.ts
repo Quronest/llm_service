@@ -27,6 +27,7 @@ const taskSchema = z.object({
   description: z.string(),
   expectedCompletionTime: z.string().min(1),
   domain: z.enum(domainEnumList),
+  sub_Domains: z.array(z.string()).min(1),
   task_tags: z.array(z.enum(taskTagEnumList)).min(1).max(4),
   level: z.enum(levelEnumList),
 });
