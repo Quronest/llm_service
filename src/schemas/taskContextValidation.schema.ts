@@ -27,8 +27,11 @@ export const taskContextValidationSchema = z.object({
     example: [""],
   }),
   level: z.enum(levelEnumList).openapi({
-    example: level.EASY
-  })
+    example: level.EASY,
+  }),
+  expected_total_minutes: z.number().min(1).openapi({
+    example: 60,
+  }),
 });
 
 export type TaskContextValidationType = z.infer<
