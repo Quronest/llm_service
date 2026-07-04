@@ -108,6 +108,7 @@ export const createReadingTaskChain = async (
 
   const scrapeUrlsNode = async (state: typeof GraphState.State) => {
     const contents: string[] = [];
+    const successfulUrls: string[] = [];
 
     for (const url of state.urls) {
       try {
@@ -122,12 +123,13 @@ export const createReadingTaskChain = async (
         const filteredText = extractURLText(html);
 
         contents.push(`Content from ${url}:\n${filteredText}`);
+        successfulUrls.push(url);
       } catch (err) {
         log.warn(`Failed to process ${url}: ${err}`);
       }
     }
 
-    return { contents };
+    return { contents, urls: successfulUrls };
   };
 
   const generateTaskNode = async (state: typeof GraphState.State) => {
@@ -141,6 +143,7 @@ export const createReadingTaskChain = async (
     const response = await chain.invoke({
       context: state.context,
       scrapedContent: state.scrapedContent.join("\n\n---\n\n"),
+      validUrls: JSON.stringify(state.urls),
     });
 
     const transformed: TransformedReadingTaskResponse = {
