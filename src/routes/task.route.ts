@@ -67,11 +67,11 @@ router.post("/generate-daily-plan", verifyToken, generateDailyPlan);
  *                       type: object
  *                       description: The generated reading task details
  */
-router.post("/generate-reading-tasks", verifyToken, generateReadingTasks);
+router.post("/generate-reading-task", verifyToken, generateReadingTasks);
 
 /**
  * @openapi
- * /llm/api/v1/tasks/generate-quiz-tasks:
+ * /llm/api/v1/tasks/generate-quiz-task:
  *   post:
  *     summary: Generate quiz tasks
  *     description: Accepts quiz context to generate a quiz task with content and comprehension questions.

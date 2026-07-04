@@ -8,7 +8,14 @@ import { groupPahseRulesPromptMap } from "../prompts/taskProgressionRules.prompt
 import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
 import { userContextPrompt } from "../prompts/userContext.prompt";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
-import { type Group, type Phase, taskTypeEnumList } from "../enums";
+import {
+  type Group,
+  type Phase,
+  taskTypeEnumList,
+  domainEnumList,
+  taskTagEnumList,
+  levelEnumList,
+} from "../enums";
 import { LlmWithConfig } from "../types/llmConfigType";
 import { TaskCreateInputType } from "../schemas/taskGenerateInputValidation.schema";
 
@@ -18,6 +25,10 @@ const taskSchema = z.object({
   title: z.string(),
   type: z.enum(taskTypeEnumList),
   description: z.string(),
+  domain: z.enum(domainEnumList),
+  subdomains: z.array(z.string()).min(1),
+  tags: z.array(z.enum(taskTagEnumList)).min(1).max(4),
+  level: z.enum(levelEnumList),
   expected_total_minutes: z
     .number()
     .min(1)
