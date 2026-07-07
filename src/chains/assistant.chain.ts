@@ -1,6 +1,6 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import geminiLLM from "../llm/gemini.llm";
-import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
+import { groupDetailsPrompt } from "../prompts";
 import { assistantSystemPrompt } from "../prompts/assistant.prompt";
 
 interface AssistantChainParams {

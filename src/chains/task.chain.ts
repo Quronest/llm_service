@@ -5,7 +5,7 @@ import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 import { createModuleLogger } from "../utils/logger";
 import { groupPahseRulesPromptMap } from "../prompts/taskProgressionRules.prompt";
-import { groupDetailsPrompt } from "../prompts/groupDetails.prompt";
+import { groupDetailsPrompt } from "../prompts";
 import { userContextPrompt } from "../prompts/userContext.prompt";
 import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
 import {
