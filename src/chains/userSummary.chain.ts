@@ -1,11 +1,8 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
-import type { RunnableLike } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-
-import { groupDetailsPrompt } from "../prompts";
-import { userSummaryPrompt } from "../prompts";
+import { groupDetailsPrompt, userSummaryPrompt } from "../prompts";
 import { createModuleLogger } from "../utils/logger";
 import { userGroupEnumList, phaseEnumList } from "../enums";
 import { UserSummaryGenerateDataType } from "../schemas/userSummaryData.schema";
@@ -20,7 +17,6 @@ const userSummarySchema = z.object({
 });
 
 const parser = StructuredOutputParser.fromZodSchema(userSummarySchema);
-
 
 const combinedSystemText = `
 ${groupDetailsPrompt}

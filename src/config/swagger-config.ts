@@ -21,7 +21,6 @@ registry.register("ApiResponse", apiResponseSchema);
 registry.register("TaskGenerateContext", taskGenerateValidationSchema);
 registry.register("AssistantChat", assistantchatContextValidationSchema);
 
-
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const components = generator.generateComponents();
 

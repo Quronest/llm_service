@@ -3,7 +3,5 @@ import z from "zod";
 
 export type LlmWithConfig = {
   withConfig: (config: Record<string, unknown>) => RunnableLike;
-  withStructuredOutput<T extends z.ZodTypeAny>(
-    schema: T
-  ): RunnableLike;
+  withStructuredOutput<T extends z.ZodTypeAny>(schema: T): RunnableLike;
 };

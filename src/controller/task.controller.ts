@@ -10,6 +10,7 @@ import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.
 import { createQuizTaskChain } from "../chains/quizTask.chain";
 import { createReadingTaskChain } from "../chains/readingTask.chain";
 import { StatusCodes } from "http-status-codes";
+import logger from "../utils/logger";
 
 export const generateDailyPlan = asyncHandler(
   async (req: Request, res: Response) => {
@@ -42,11 +43,18 @@ export const generateQuizTasks = asyncHandler(
     );
 
     const llm = geminiLLM();
-    const response = await createQuizTaskChain({ quizContext: validateData }, llm);
+    const response = await createQuizTaskChain(
+      { quizContext: validateData },
+      llm,
+    );
     return res
       .status(StatusCodes.OK)
       .json(
-        new ApiResponse(StatusCodes.OK, response, "Quiz tasks generated successfully"),
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "Quiz tasks generated successfully",
+        ),
       );
   },
 );
@@ -57,7 +65,7 @@ export const generateReadingTasks = asyncHandler(
       taskGenerateValidationSchema,
       req.body,
     );
-
+    logger.info('Inside controller');
     const llm = geminiLLM();
 
     const response = await createReadingTaskChain(
@@ -68,8 +76,11 @@ export const generateReadingTasks = asyncHandler(
     return res
       .status(StatusCodes.OK)
       .json(
-        new ApiResponse(StatusCodes.OK, response, "Reading tasks generated successfully"),
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "Reading tasks generated successfully",
+        ),
       );
   },
 );
-

@@ -1,12 +1,12 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import z from "zod";
 
 import { LlmWithConfig } from "../types/llmConfigType";
-import { findUrlsPrompt } from "../prompts/findUrls.prompt";
-import { generateReadingTasksPrompt } from "../prompts/generateReadingTasks.prompt";
+import { findUrlsPrompt, generateReadingTasksPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
-import { createModuleLogger } from "../utils/logger";
+import logger, { createModuleLogger } from "../utils/logger";
 import { extractURLText } from "../tools/extractURLText.tool";
 import { generateSlug } from "../utils/slug-utils";
 
@@ -64,8 +64,18 @@ export const generateReadingTaskResponseSchema = z.object({
 const urlExtractionSchema = z.object({
   urls: z
     .array(z.url())
+    .min(5)
+    .max(8)
     .describe("List of relevant URLs found based on the context"),
 });
+
+const urlExtractionParser = StructuredOutputParser.fromZodSchema(
+  urlExtractionSchema,
+);
+
+const readingTaskParser = StructuredOutputParser.fromZodSchema(
+  generateReadingTaskResponseSchema,
+);
 
 export type UrlExtractionSchemaType = z.infer<typeof urlExtractionSchema>;
 
@@ -94,6 +104,8 @@ export const createReadingTaskChain = async (
   input: { readingContext: TaskGenerateValidationType },
   llm: LlmWithConfig,
 ) => {
+
+  logger.info('Inside the chain');
   const findUrlsNode = async (state: typeof GraphState.State) => {
     const prompt = PromptTemplate.fromTemplate(findUrlsPrompt);
 
@@ -102,6 +114,7 @@ export const createReadingTaskChain = async (
 
     const response: UrlExtractionSchemaType = await chain.invoke({
       context: state.context,
+      format_instructions: urlExtractionParser.getFormatInstructions(),
     });
     return { urls: response.urls };
   };
@@ -144,25 +157,29 @@ export const createReadingTaskChain = async (
       context: state.context,
       scrapedContent: state.scrapedContent.join("\n\n---\n\n"),
       validUrls: JSON.stringify(state.urls),
+      format_instructions: readingTaskParser.getFormatInstructions(),
     });
 
     const transformed: TransformedReadingTaskResponse = {
       ...response,
-      questionnaires: response.questionnaires.map((q : OriginalQuestionnaire, index: number) => {
-        const options: TransformedOption[] = q.options.map((opt) => ({
-          ...opt,
-          slug: generateSlug(opt.text),
-        }));
+      questionnaires: response.questionnaires.map(
+        (q: OriginalQuestionnaire, index: number) => {
+          const options: TransformedOption[] = q.options.map((opt) => ({
+            ...opt,
+            slug: generateSlug(opt.text),
+          }));
 
-        const solutionOption = options.find((o) => o.id === q.solution) ?? null;
+          const solutionOption =
+            options.find((o) => o.id === q.solution) ?? null;
 
-        return {
-          id: index + 1,
-          ...q,
-          options,
-          solution: solutionOption,
-        };
-      }),
+          return {
+            id: index + 1,
+            ...q,
+            options,
+            solution: solutionOption,
+          };
+        },
+      ),
     };
     return { finalOutput: transformed };
   };

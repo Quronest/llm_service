@@ -11,14 +11,17 @@ export const assistantchatContextValidationSchema = z
       example: "Explain recursion in simple terms.",
     }),
     chatContext: z.string().optional().openapi({
-      description: "Previous conversation or background information to maintain context",
-      example: "The user is studying computer science and has seen a few programming examples.",
+      description:
+        "Previous conversation or background information to maintain context",
+      example:
+        "The user is studying computer science and has seen a few programming examples.",
     }),
-    userContext: userContextValidationSchema
+    userContext: userContextValidationSchema,
   })
   .openapi("AssistantChat");
 
-export type AssistantChatType = z.infer<typeof assistantchatContextValidationSchema>;
+export type AssistantChatType = z.infer<
+  typeof assistantchatContextValidationSchema
+>;
 
-export const swaggerAssistantChatSchema =
-  assistantchatContextValidationSchema;
+export const swaggerAssistantChatSchema = assistantchatContextValidationSchema;

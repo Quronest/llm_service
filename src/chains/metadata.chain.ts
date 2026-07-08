@@ -7,7 +7,7 @@ const log = createModuleLogger(import.meta.url);
 
 export const generateChatTitle = async (
   userPrompt: string,
-  aiResponse: string
+  aiResponse: string,
 ): Promise<string> => {
   try {
     const prompt = PromptTemplate.fromTemplate(chatTitlePrompt);
@@ -34,7 +34,7 @@ export const generateChatTitle = async (
 export const generateChatSummary = async (
   chatContext: string,
   userPrompt: string,
-  aiResponse: string
+  aiResponse: string,
 ): Promise<string> => {
   try {
     const prompt = PromptTemplate.fromTemplate(chatSummaryPrompt);

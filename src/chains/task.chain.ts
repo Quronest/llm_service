@@ -5,9 +5,11 @@ import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 import { createModuleLogger } from "../utils/logger";
 import { groupPahseRulesPromptMap } from "../prompts/taskProgressionRules.prompt";
-import { groupDetailsPrompt } from "../prompts";
-import { userContextPrompt } from "../prompts/userContext.prompt";
-import { generateDailyTaskPrompt } from "../prompts/generateDailyTask.prompt";
+import {
+  groupDetailsPrompt,
+  userContextPrompt,
+  generateDailyTaskPrompt,
+} from "../prompts";
 import {
   type Group,
   type Phase,
@@ -38,7 +40,7 @@ const taskSchema = z.object({
 const daySchema = z.object({
   title: z.string(),
   description: z.string(),
-  tasks: z.array(taskSchema).min(3),
+  tasks: z.array(taskSchema).min(5).max(8),
 });
 
 const planSchema = z.object({

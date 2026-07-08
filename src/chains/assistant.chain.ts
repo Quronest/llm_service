@@ -10,20 +10,16 @@ interface AssistantChainParams {
 }
 
 export const createAssistantStream = async (params: AssistantChainParams) => {
-  const {
-    userPrompt,
-    chatContext = "",
-    userContext = "",
-  } = params;
+  const { userPrompt, chatContext = "", userContext = "" } = params;
 
-  const SYSTEM_PROMPT=`
+  const SYSTEM_PROMPT = `
 ${assistantSystemPrompt}
 ${groupDetailsPrompt} 
 {userContext}
 {chatContext}
-`
+`;
 
-const promptTemplate = ChatPromptTemplate.fromMessages([ 
+  const promptTemplate = ChatPromptTemplate.fromMessages([
     ["system", SYSTEM_PROMPT],
     ["user", "{userPrompt}"],
   ]);
