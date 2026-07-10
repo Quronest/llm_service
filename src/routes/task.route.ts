@@ -97,6 +97,6 @@ router.post("/generate-reading-task", verifyToken, generateReadingTasks);
  *                       type: object
  *                       description: The generated quiz task details
  */
-router.post("/generate-quiz-tasks", verifyToken, generateQuizTasks);
+router.post("/generate-quiz-task", verifyToken, generateQuizTasks);
 
 export default router;
