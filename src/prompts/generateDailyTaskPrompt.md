@@ -51,31 +51,6 @@ You will receive the following user context variables:
 
 {format_instructions}
 
-Your response must strictly be a JSON object matching this structure:
-
-```json
-{{
-  "plan": [
-    {{
-      "title": "Day title",
-      "description": "Overall theme and objective of the day",
-      "tasks": [
-        {{
-          "title": "Task title",
-          "type": "READING",
-          "description": "Detailed actionable task instructions",
-          "domain": "WEB_DEVELOPMENT",
-          "subdomains": ["React Hooks", "State Management"],
-          "tags": ["FOUNDATION", "READING"],
-          "level": "EASY",
-          "expected_total_minutes": 45
-        }}
-      ]
-    }}
-  ]
-}}
-```
-
 ### 7. Quality & Self-Evaluation Guidelines
 
 Verify the output matches the following checks before responding:

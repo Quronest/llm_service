@@ -41,12 +41,6 @@ You will receive the following candidate variables:
 
 {format_instructions}
 
-Your response must strictly be a JSON object containing:
-
-- `group`: Must be one of `GROUP_A`, `GROUP_B`, `GROUP_C`.
-- `phase`: Must be one of `PHASE_1`, `PHASE_2`, `PHASE_3`.
-- `summary`: A brief summary of their current state and reasoning for this classification.
-
 ### 7. Quality & Self-Evaluation Guidelines
 
 Verify the output matches the following checks before responding:

@@ -37,28 +37,47 @@ export interface TransformedReadingTaskResponse extends Omit<
 }
 
 export const sourceSchema = z.object({
-  name: z.string(),
-  url: z.url(),
+  name: z.string().describe("Name of the source"),
+  url: z.url().describe("URL of the source"),
 });
 
 export const optionsSchema = z.object({
-  id: z.number(),
-  text: z.string(),
+  id: z.number().describe("Unique identifier for the option"),
+  text: z.string().describe("Text content of the option"),
 });
 
 export const questionnaireSchema = z.object({
-  title: z.string(),
-  options: z.array(optionsSchema).length(4),
-  solution: z.number(),
-  explanation: z.string(),
+  title: z.string().describe("Title of the questionnaire"),
+  options: z
+    .array(optionsSchema)
+    .length(4)
+    .describe("Array of 4 answer options"),
+  solution: z.number().describe("ID of the correct answer option"),
+  explanation: z.string().describe("Explanation of the correct answer"),
 });
 
 export const generateReadingTaskResponseSchema = z.object({
-  markdown_content: z.string(),
-  sources: z.array(sourceSchema).min(3).max(5),
-  youtube_video_summary: z.string().optional(),
-  youtube_video_url: z.string().optional(),
-  questionnaires: z.array(questionnaireSchema).min(3).max(4),
+  markdown_content: z
+    .string()
+    .describe("Main reading content in markdown format"),
+  sources: z
+    .array(sourceSchema)
+    .min(3)
+    .max(5)
+    .describe("List of 3-5 sources used"),
+  youtube_video_summary: z
+    .string()
+    .optional()
+    .describe("Summary of related YouTube video"),
+  youtube_video_url: z
+    .string()
+    .optional()
+    .describe("URL of related YouTube video"),
+  questionnaires: z
+    .array(questionnaireSchema)
+    .min(3)
+    .max(4)
+    .describe("Array of 3-4 questionnaires"),
 });
 
 const urlExtractionSchema = z.object({
@@ -69,9 +88,8 @@ const urlExtractionSchema = z.object({
     .describe("List of relevant URLs found based on the context"),
 });
 
-const urlExtractionParser = StructuredOutputParser.fromZodSchema(
-  urlExtractionSchema,
-);
+const urlExtractionParser =
+  StructuredOutputParser.fromZodSchema(urlExtractionSchema);
 
 const readingTaskParser = StructuredOutputParser.fromZodSchema(
   generateReadingTaskResponseSchema,
@@ -104,8 +122,6 @@ export const createReadingTaskChain = async (
   input: { readingContext: TaskGenerateValidationType },
   llm: LlmWithConfig,
 ) => {
-
-  logger.info('Inside the chain');
   const findUrlsNode = async (state: typeof GraphState.State) => {
     const prompt = PromptTemplate.fromTemplate(findUrlsPrompt);
 

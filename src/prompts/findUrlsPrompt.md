@@ -34,24 +34,6 @@ You will receive the following variables:
 
 {format_instructions}
 
-Your response must strictly be a JSON object containing:
-
-- `urls`: A JSON array of strings containing exactly 5 to 8 valid, absolute URLs.
-
-Example structure:
-
-```json
-{{
-  "urls": [
-    "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
-    "https://nodejs.org/docs/latest/api/",
-    "https://www.typescriptlang.org/docs/",
-    "https://nextjs.org/docs",
-    "https://react.dev"
-  ]
-}}
-```
-
 ### 7. Quality & Self-Evaluation Guidelines
 
 Verify that the output matches the following checks before responding:

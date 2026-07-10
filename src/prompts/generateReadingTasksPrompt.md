@@ -40,35 +40,6 @@ You will receive the following variables:
 
 {format_instructions}
 
-Your response must strictly be a JSON object conforming to the following structure:
-
-```json
-{{
-  "markdown_content": "Deep, blog-style content with paragraphs and headers...",
-  "sources": [
-    {{
-      "name": "Title of article",
-      "url": "https://example.com/source"
-    }}
-  ],
-  "youtube_video_summary": "Brief summary of the video...",
-  "youtube_video_url": "https://www.youtube.com/watch?v=...",
-  "questionnaires": [
-    {{
-      "title": "Question?",
-      "options": [
-        {{ "id": 1, "text": "Option A" }},
-        {{ "id": 2, "text": "Option B" }},
-        {{ "id": 3, "text": "Option C" }},
-        {{ "id": 4, "text": "Option D" }}
-      ],
-      "solution": 1,
-      "explanation": "Why Option A is correct..."
-    }}
-  ]
-}}
-```
-
 ### 7. Quality & Self-Evaluation Guidelines
 
 Verify that the output matches the following checks before responding:

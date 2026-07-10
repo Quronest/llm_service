@@ -3,7 +3,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
-import { createModuleLogger } from "../utils/logger";
+import logger, { createModuleLogger } from "../utils/logger";
 import { groupPahseRulesPromptMap } from "../prompts/taskProgressionRules.prompt";
 import {
   groupDetailsPrompt,
@@ -24,13 +24,20 @@ import { TaskCreateInputType } from "../schemas/taskGenerateInputValidation.sche
 const log = createModuleLogger(import.meta.url);
 
 const taskSchema = z.object({
-  title: z.string(),
-  type: z.enum(taskTypeEnumList),
-  description: z.string(),
-  domain: z.enum(domainEnumList),
-  subdomains: z.array(z.string()).min(1),
-  tags: z.array(z.enum(taskTagEnumList)).min(1).max(4),
-  level: z.enum(levelEnumList),
+  title: z.string().describe("Task title"),
+  type: z.enum(taskTypeEnumList).describe("Type of task"),
+  description: z.string().describe("Detailed description of the task"),
+  domain: z.enum(domainEnumList).describe("Domain the task belongs to"),
+  subdomains: z
+    .array(z.string())
+    .min(1)
+    .describe("List of subdomains related to the task"),
+  tags: z
+    .array(z.enum(taskTagEnumList))
+    .min(1)
+    .max(4)
+    .describe("Tags for categorizing the task (1-4 tags)"),
+  level: z.enum(levelEnumList).describe("Difficulty level of the task"),
   expected_total_minutes: z
     .number()
     .min(1)
@@ -38,13 +45,22 @@ const taskSchema = z.object({
 });
 
 const daySchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  tasks: z.array(taskSchema).min(5).max(8),
+  title: z.string().describe("Title for the day's plan"),
+  description: z
+    .string()
+    .describe("Description of the day's focus and objectives"),
+  tasks: z
+    .array(taskSchema)
+    .min(5)
+    .max(8)
+    .describe("List of tasks for the day (5-8 tasks)"),
 });
 
 const planSchema = z.object({
-  plan: z.array(daySchema).length(7),
+  plan: z
+    .array(daySchema)
+    .length(7)
+    .describe("Weekly plan with 7 days of tasks"),
 });
 
 const parser = StructuredOutputParser.fromZodSchema(planSchema);

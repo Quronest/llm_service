@@ -30,3 +30,12 @@ export const generateReadingTasksPrompt: string = await readPromptFile(
 );
 
 export const findUrlsPrompt: string = await readPromptFile("findUrlsPrompt.md");
+
+export const generateQuizTasksPrompt: string = await readPromptFile(
+  "generateQuizTasksPrompt.md",
+);
+
+export const createQuizPlanPrompt: string = await readPromptFile(
+  "createQuizPlanPrompt.md",
+);
+

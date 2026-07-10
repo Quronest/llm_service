@@ -65,7 +65,7 @@ export const generateReadingTasks = asyncHandler(
       taskGenerateValidationSchema,
       req.body,
     );
-    logger.info('Inside controller');
+
     const llm = geminiLLM();
 
     const response = await createReadingTaskChain(
