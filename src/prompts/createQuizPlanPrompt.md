@@ -12,8 +12,9 @@ Create a detailed, comprehensive quiz generation plan based on the provided lear
 
 1. Read the learning context provided under the **Input Schema** section (Section 5).
 2. Analyze the learning context carefully to understand the learning objective, topic, learner progress, and any additional metadata.
-3. Generate a comprehensive plan that another AI can use to generate a high-quality quiz.
-4. The quiz plan must include:
+3. If the context includes an `llm_context` field, use it as a boundary marker to keep the quiz focused on the intended scope and avoid drifting into adjacent topics.
+4. Generate a comprehensive plan that another AI can use to generate a high-quality quiz.
+5. The quiz plan must include:
    - Overall quiz objective.
    - Evaluation purpose (diagnostic, reinforcement, mastery, revision, etc.).
    - Recommended difficulty level.
@@ -29,7 +30,7 @@ Create a detailed, comprehensive quiz generation plan based on the provided lear
    - Any personalization based on the learner context.
    - Success criteria for determining whether the learner has mastered the topic.
    - Additional generation guidelines for the quiz generation model.
-5. Follow the planning guidelines:
+6. Follow the planning guidelines:
    - Ensure the quiz aligns with the learning objective.
    - Cover all major concepts without unnecessary repetition.
    - Balance conceptual and practical questions appropriately.
@@ -37,7 +38,7 @@ Create a detailed, comprehensive quiz generation plan based on the provided lear
    - Tailor the plan to the learner's experience level (e.g., prioritize foundational concepts for beginners, include analytical/application assessments for advanced learners).
    - Ensure the planned difficulty progression feels natural.
    - Recommend realistic question distributions.
-6. Format the output strictly as plain text (no markdown, no extra conversational text).
+7. Format the output strictly as plain text (no markdown, no extra conversational text).
 
 ### 4. Constraints & Rules (What NOT to Do)
 
@@ -64,6 +65,7 @@ Verify that the output matches the following checks before responding:
 - [ ] Does the plan align with the learning objective and cover all major concepts?
 - [ ] Does the plan include all necessary details (objective, evaluation purpose, difficulty, duration, question type distribution, topics, Bloom's cognitive levels, distractors rules, etc.)?
 - [ ] Is the plan detailed enough that another LLM can generate the entire quiz from it without needing additional instructions?
+- [ ] Does the plan respect any `llm_context` boundary provided in the learning context?
 - [ ] Are there **no quiz questions** generated?
 - [ ] Is the output completely free of markdown formatting?
 - [ ] Is there no conversational filler or explanation outside the plan?

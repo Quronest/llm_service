@@ -27,6 +27,11 @@ const taskSchema = z.object({
   title: z.string().describe("Task title"),
   type: z.enum(taskTypeEnumList).describe("Type of task"),
   description: z.string().describe("Detailed description of the task"),
+  llm_context: z
+    .string()
+    .describe(
+      "Task boundary context describing the exact scope of this task and how it relates to the previous and next task in the same day",
+    ),
   domain: z.enum(domainEnumList).describe("Domain the task belongs to"),
   subdomains: z
     .array(z.string())
@@ -49,6 +54,11 @@ const daySchema = z.object({
   description: z
     .string()
     .describe("Description of the day's focus and objectives"),
+  llm_context: z
+    .string()
+    .describe(
+      "Day boundary context describing how much of the learning path this day should cover and how it connects to the previous and next days",
+    ),
   tasks: z
     .array(taskSchema)
     .min(5)

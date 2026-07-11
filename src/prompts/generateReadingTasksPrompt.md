@@ -11,13 +11,14 @@ Generate a comprehensive, engaging, and well-structured educational reading modu
 ### 3. Execution Steps (What to Do)
 
 1. Analyze the `{context}` to understand the user's learning objective.
-2. Read the `{scrapedContent}` as the primary source of factual truth.
-3. Write a comprehensive, detailed reading module in `markdown_content`. Maximize content length to cover all aspects thoroughly.
-4. Structure the `markdown_content` like a professional, human-written blog post using descriptive paragraphs, clear transitions, and logical flow instead of relying on excessive bullet points or lists.
-5. Search the `{scrapedContent}` and resources for relevant YouTube videos on the topic, and populate `youtube_video_url` and `youtube_video_summary`.
-6. Compile the bibliography sources list using _only_ the URLs provided in `{validUrls}`.
-7. Generate a 3-to-4 question multiple-choice comprehension questionnaire (`questionnaires`). Each question must have exactly 4 plausible options, with a single correct solution and an educational explanation.
-8. Format the final output strictly as JSON following the output schema (Section 6).
+2. Treat any `llm_context` value inside the context as the primary boundary for this task. Use it to decide how broad or narrow the reading module should be, and do not expand beyond the specified scope.
+3. Read the `{scrapedContent}` as the primary source of factual truth.
+4. Write a comprehensive, detailed reading module in `markdown_content`. Maximize content length to cover all aspects thoroughly, but keep the depth aligned to the boundary described by `llm_context`.
+5. Structure the `markdown_content` like a professional, human-written blog post using descriptive paragraphs, clear transitions, and logical flow instead of relying on excessive bullet points or lists.
+6. Search the `{scrapedContent}` and resources for relevant YouTube videos on the topic, and populate `youtube_video_url` and `youtube_video_summary`.
+7. Compile the bibliography sources list using _only_ the URLs provided in `{validUrls}`.
+8. Generate a 3-to-4 question multiple-choice comprehension questionnaire (`questionnaires`). Each question must have exactly 4 plausible options, with a single correct solution and an educational explanation.
+9. Format the final output strictly as JSON following the output schema (Section 6).
 
 ### 4. Constraints & Rules (What NOT to Do)
 
@@ -46,6 +47,7 @@ Verify that the output matches the following checks before responding:
 
 - [ ] Is the `markdown_content` long, detailed, and highly informative?
 - [ ] Does the `markdown_content` feel human-written, employing descriptive paragraphs instead of a wall of bullet points?
+- [ ] Does the content respect the task boundary described in `llm_context`?
 - [ ] Did you try to find and populate a relevant YouTube video URL and summary?
 - [ ] Are all URLs in the `sources` list present in the `{validUrls}` array?
 - [ ] Is the questionnaire composed of 3 to 4 high-quality questions, each with exactly 4 options?

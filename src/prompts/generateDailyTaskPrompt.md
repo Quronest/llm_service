@@ -14,14 +14,17 @@ Generate a **7-day structured learning plan** (Day 1 to Day 7) for the user base
 2. Review the allowed domains, tags, and difficulty levels provided in the schema rules.
 3. Generate a structured learning plan covering exactly **7 days** (Day 1 through Day 7).
 4. For each day, provide a clear, descriptive **title** and a concise **description** summarizing the day's theme.
-5. Create **between 5 and 8 tasks per day** (minimum of 5 tasks is strictly required).
-6. Distribute task types across "READING", "QUIZ", and "CODING". Make sure that for every single day, the plan contains **at least 2 "READING" tasks** (Reading tasks > 1).
-7. Ensure difficulty progresses naturally over the week:
+5. For each day, also provide an `llm_context` string that describes the day's learning boundary: how much of the path it should cover, what it should emphasize, and how it should connect to the previous and next day without overlap.
+6. For each task, also provide an `llm_context` string that describes the task boundary: how much it should cover, what is in scope, and how it should relate to the previous and next task in the same day.
+7. Create **between 5 and 8 tasks per day** (minimum of 5 tasks is strictly required).
+8. Distribute task types across "READING", "QUIZ", and "CODING". Make sure that for every single day, the plan contains **at least 2 "READING" tasks** (Reading tasks > 1).
+9. Ensure difficulty progresses naturally over the week:
    - Days 1–2: Easy/guided tasks to build momentum.
    - Days 3–5: Medium/moderate tasks for active skill development.
    - Days 6–7: Hard/challenging tasks involving real-world application or debugging.
-8. Align the complexity, scope, and expected duration of all tasks with the user's performance and risk metrics (e.g. adjust effort for users at risk of burnout).
-9. Format the final output strictly as JSON following the format instructions and the **Output Schema & Format** (Section 6).
+10. Align the complexity, scope, and expected duration of all tasks with the user's performance and risk metrics (e.g. adjust effort for users at risk of burnout).
+11. Use the `llm_context` fields to prevent over-generation and under-generation. Keep every day and task intentionally bounded and avoid expanding beyond the specified scope.
+12. Format the final output strictly as JSON following the format instructions and the **Output Schema & Format** (Section 6).
 
 ### 4. Constraints & Rules (What NOT to Do)
 
@@ -58,6 +61,8 @@ Verify the output matches the following checks before responding:
 - [ ] Does the plan generate exactly 7 days (Day 1 through Day 7)?
 - [ ] Does every single day plan contain **between 5 and 8 tasks** (minimum of 5 tasks)?
 - [ ] Does every single day plan contain **more than 1 READING task** (strictly > 1 Reading task)?
+- [ ] Does every day include an `llm_context` describing the day's scope and boundary?
+- [ ] Does every task include an `llm_context` describing the task's scope and boundary?
 - [ ] Are task types strictly limited to `"READING"`, `"QUIZ"`, and `"CODING"`?
 - [ ] Is `domain` one of the allowed domain enums (e.g. `WEB_DEVELOPMENT`, `MACHINE_LEARNING`, `DATA_SCIENCE`, etc.)?
 - [ ] Is `tags` an array containing 1 to 4 allowed tag enums (e.g. `FOUNDATION`, `READING`, `PRACTICE`, etc.)?
