@@ -39,3 +39,15 @@ export const createQuizPlanPrompt: string = await readPromptFile(
   "createQuizPlanPrompt.md",
 );
 
+export const assistantPrompt: string = await readPromptFile(
+  "assistantPrompt.md",
+);
+
+export const chatTitlePrompt: string = await readPromptFile(
+  "chatTitlePrompt.md",
+);
+
+export const chatSummaryPrompt: string = await readPromptFile(
+  "chatSummaryPrompt.md",
+);
+

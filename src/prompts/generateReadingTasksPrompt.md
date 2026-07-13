@@ -17,7 +17,7 @@ Generate a comprehensive, engaging, and well-structured educational reading modu
 5. Structure the `markdown_content` like a professional, human-written blog post using descriptive paragraphs, clear transitions, and logical flow instead of relying on excessive bullet points or lists.
 6. Search the `{scrapedContent}` and resources for relevant YouTube videos on the topic, and populate `youtube_video_url` and `youtube_video_summary`.
 7. Compile the bibliography sources list using _only_ the URLs provided in `{validUrls}`.
-8. Generate a 3-to-4 question multiple-choice comprehension questionnaire (`questionnaires`). Each question must have exactly 4 plausible options, with a single correct solution and an educational explanation.
+8. Generate a 3-to-4 question multiple-choice comprehension questionnaire (`questionnaires`). Each question must have exactly 4 plausible options, with a single correct solution and an educational explanation, question title and options must be in markdown.
 9. Format the final output strictly as JSON following the output schema (Section 6).
 
 ### 4. Constraints & Rules (What NOT to Do)

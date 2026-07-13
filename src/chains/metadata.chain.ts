@@ -1,7 +1,8 @@
 import { PromptTemplate } from "@langchain/core/prompts";
+
 import geminiLLM from "../llm/gemini.llm";
 import { createModuleLogger } from "../utils/logger";
-import { chatTitlePrompt, chatSummaryPrompt } from "../prompts/metadata.prompt";
+import { chatTitlePrompt, chatSummaryPrompt } from "../prompts";
 
 const log = createModuleLogger(import.meta.url);
 

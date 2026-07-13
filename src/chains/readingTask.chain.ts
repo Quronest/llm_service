@@ -9,6 +9,7 @@ import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.sc
 import logger, { createModuleLogger } from "../utils/logger";
 import { extractURLText } from "../tools/extractURLText.tool";
 import { generateSlug } from "../utils/slug-utils";
+import { levelEnumList } from "../enums";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -43,17 +44,18 @@ export const sourceSchema = z.object({
 
 export const optionsSchema = z.object({
   id: z.number().describe("Unique identifier for the option"),
-  text: z.string().describe("Text content of the option"),
+  text: z.string().describe("Text content of the option in markdown"),
 });
 
 export const questionnaireSchema = z.object({
-  title: z.string().describe("Title of the questionnaire"),
+  question_markdown: z.string().describe("Question in markdown"), 
+  level: z.enum(levelEnumList).describe("Level of the question"),
   options: z
     .array(optionsSchema)
     .length(4)
     .describe("Array of 4 answer options"),
   solution: z.number().describe("ID of the correct answer option"),
-  explanation: z.string().describe("Explanation of the correct answer"),
+  explanation: z.string().describe("Explanation of the correct answer in markdown"),
 });
 
 export const generateReadingTaskResponseSchema = z.object({
