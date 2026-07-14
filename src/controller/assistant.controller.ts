@@ -3,8 +3,11 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { createModuleLogger } from "../utils/logger";
 import { validateZodSchema } from "../utils/validateZodSchema";
 import { assistantchatContextValidationSchema } from "../schemas/assistant.schema";
-import { createAssistantStream } from "../chains/assistant.chain"; 
-import { generateChatSummary, generateChatTitle } from "../chains/metadata.chain";
+import { createAssistantStream } from "../chains/assistant.chain";
+import {
+  generateChatSummary,
+  generateChatTitle,
+} from "../chains/metadata.chain";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -15,7 +18,10 @@ interface SSECompressedResponse extends Response {
 
 export const chatWithAssistantStream = asyncHandler(
   async (req: Request, res: SSECompressedResponse) => {
-    const validatedData = await validateZodSchema(assistantchatContextValidationSchema, req.body);
+    const validatedData = await validateZodSchema(
+      assistantchatContextValidationSchema,
+      req.body,
+    );
 
     const { userPrompt, chatContext, userContext } = validatedData;
 
@@ -37,7 +43,7 @@ export const chatWithAssistantStream = asyncHandler(
       const stream = await createAssistantStream({
         userPrompt,
         chatContext,
-        userContext: userContextString
+        userContext: userContextString,
       });
 
       for await (const chunk of stream) {
@@ -57,29 +63,32 @@ export const chatWithAssistantStream = asyncHandler(
       res.write("data: [DONE]\n\n");
       // Flush the DONE signal immediately so the client can finalize the UI
       if (typeof res.flush === "function") {
-        res.flush(); 
+        res.flush();
       }
-      
+
       try {
         const [chatTitle, chatSummary] = await Promise.all([
           generateChatTitle(userPrompt, fullAssistantResponse),
-          generateChatSummary(chatContext ?? "", userPrompt, fullAssistantResponse)
+          generateChatSummary(
+            chatContext ?? "",
+            userPrompt,
+            fullAssistantResponse,
+          ),
         ]);
 
         log.info(`Metadata generated - Title: "${chatTitle}"`);
 
-        const metadataPayload = JSON.stringify({ 
-          type: "metadata", 
-          title: chatTitle, 
-          summary: chatSummary 
+        const metadataPayload = JSON.stringify({
+          type: "metadata",
+          title: chatTitle,
+          summary: chatSummary,
         });
-        
+
         res.write(`data: ${metadataPayload}\n\n`);
 
         if (typeof res.flush === "function") {
           res.flush();
         }
-
       } catch (metadataError) {
         log.error(`Failed to generate title/summary: ${metadataError}`);
       }

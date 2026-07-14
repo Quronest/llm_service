@@ -13,4 +13,7 @@ export const taskTag = {
 
 export type TaskTag = (typeof taskTag)[keyof typeof taskTag];
 
-export const taskTagEnumList = Object.values(taskTag) as [TaskTag, ...TaskTag[]];
+export const taskTagEnumList = Object.values(taskTag) as [
+  TaskTag,
+  ...TaskTag[],
+];

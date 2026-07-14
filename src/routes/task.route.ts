@@ -11,7 +11,7 @@ const router = Router();
 
 /**
  * @openapi
- * /llm/api/v1/tasks/generate-tasks:
+ * /llm/api/v1/tasks/generate-daily-plan:
  *   post:
  *     summary: Generate 7-day task plan
  *     description: Accepts user context to generate a 7-day task plan.
@@ -97,6 +97,6 @@ router.post("/generate-reading-task", verifyToken, generateReadingTasks);
  *                       type: object
  *                       description: The generated quiz task details
  */
-router.post("/generate-quiz-tasks", verifyToken, generateQuizTasks);
+router.post("/generate-quiz-task", verifyToken, generateQuizTasks);
 
 export default router;

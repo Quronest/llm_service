@@ -4,9 +4,28 @@ import { questionnaireSchema } from "./readingTask.chain";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { LlmWithConfig } from "../types/llmConfigType";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { generateQuizTasksPrompt } from "../prompts/generateQuizTasks.prompt";
-import { createQuizPlanPrompt } from "../prompts/createQuizPlan.prompt";
+import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { generateQuizTasksPrompt, createQuizPlanPrompt } from "../prompts";
 import logger from "../utils/logger";
+import { generateSlug } from "../utils/slug-utils";
+
+export interface TransformedOption {
+  id: number;
+  text: string;
+  slug: string;
+}
+
+export interface TransformedQuestionnaire {
+  id: number;
+  title: string;
+  options: TransformedOption[];
+  solution: TransformedOption | null;
+  explanation: string;
+}
+
+export interface TransformedQuizTaskResponse {
+  questionnaires: TransformedQuestionnaire[];
+}
 
 export const generateQuizTaskResponseSchema = z.object({
   questionnaires: z.array(questionnaireSchema).min(7).max(12),
@@ -15,6 +34,10 @@ export const generateQuizTaskResponseSchema = z.object({
 export type GenerateQuizTaskResponseType = z.infer<
   typeof generateQuizTaskResponseSchema
 >;
+
+const quizTaskParser = StructuredOutputParser.fromZodSchema(
+  generateQuizTaskResponseSchema,
+);
 
 export const GraphState = Annotation.Root({
   context: Annotation<string>(), // Initial input context
@@ -57,8 +80,30 @@ export const createQuizTaskChain = async (
     const response = await chain.invoke({
       context: state.context,
       plan: state.plan,
+      format_instructions: quizTaskParser.getFormatInstructions(),
     });
-    return { finalOutput: response };
+
+    const transformed: TransformedQuizTaskResponse = {
+      questionnaires: response.questionnaires.map(
+        (q: z.infer<typeof questionnaireSchema>, index: number) => {
+          const options: TransformedOption[] = q.options.map((opt) => ({
+            ...opt,
+            slug: generateSlug(opt.text),
+          }));
+
+          const solutionOption = options.find((o) => o.id === q.solution) ?? null;
+
+          return {
+            id: index + 1,
+            ...q,
+            options,
+            solution: solutionOption,
+          };
+        },
+      ),
+    };
+
+    return { finalOutput: transformed };
   };
 
   const workflow = new StateGraph(GraphState)

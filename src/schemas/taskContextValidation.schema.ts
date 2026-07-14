@@ -13,6 +13,10 @@ export const taskContextValidationSchema = z.object({
     example:
       "Currently pursuing engineering degree with focus on web development and cloud technologies.",
   }),
+  llm_context: z.string().openapi({
+    example:
+      "Covers the first half of the day with foundational explanation, then hands off to practice-oriented tasks without overlapping the next task's scope.",
+  }),
   domain: z.enum(domainEnumList).openapi({
     example: domain.WEB_DEVELOPMENT,
   }),
