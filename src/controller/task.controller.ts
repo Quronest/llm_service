@@ -9,8 +9,14 @@ import { dailyPlanGenerateInputValidationSchema } from "../schemas/dailyPlanGene
 import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { createQuizTaskChain } from "../chains/quizTask.chain";
 import { createReadingTaskChain } from "../chains/readingTask.chain";
+import { createCodingProblemsChain } from "../chains/codingTask.chain";
+import {
+  createCodingTestCasesChain,
+  generateCodingTestCasesInputSchema,
+  type GenerateCodingTestCasesInputType,
+} from "../chains/codingTestCases.chain";
+import type { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { StatusCodes } from "http-status-codes";
-import logger from "../utils/logger";
 
 export const generateDailyPlan = asyncHandler(
   async (req: Request, res: Response) => {
@@ -80,6 +86,58 @@ export const generateReadingTasks = asyncHandler(
           StatusCodes.OK,
           response,
           "Reading tasks generated successfully",
+        ),
+      );
+  },
+);
+
+export const generateCodingTasks = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validateData = await validateZodSchema(
+      taskGenerateValidationSchema,
+      req.body,
+    );
+
+    const llm = geminiLLM();
+
+    const response = await createCodingProblemsChain(
+      { codingContext: validateData },
+      llm,
+    );
+
+    return res
+      .status(StatusCodes.OK)
+      .json(
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "Coding problems generated successfully",
+        ),
+      );
+  },
+);
+
+export const generateCodingTestCases = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validateData = await validateZodSchema<GenerateCodingTestCasesInputType>(
+      generateCodingTestCasesInputSchema,
+      req.body,
+    );
+
+    const llm = geminiLLM();
+
+    const response = await createCodingTestCasesChain(
+      { codingProblems: validateData },
+      llm,
+    );
+
+    return res
+      .status(StatusCodes.OK)
+      .json(
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "Coding test cases generated successfully",
         ),
       );
   },

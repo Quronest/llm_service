@@ -39,6 +39,14 @@ export const createQuizPlanPrompt: string = await readPromptFile(
   "createQuizPlanPrompt.md",
 );
 
+export const createCodingProblemsPrompt: string = await readPromptFile(
+  "createCodingProblemsPrompt.md",
+);
+
+export const generateCodingTestCasesPrompt: string = await readPromptFile(
+  "generateCodingTestCasesPrompt.md",
+);
+
 export const assistantPrompt: string = await readPromptFile(
   "assistantPrompt.md",
 );
