@@ -2,7 +2,6 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import z from "zod";
-
 import { LlmWithConfig } from "../types/llmConfigType";
 import { findUrlsPrompt, generateReadingTasksPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
@@ -48,14 +47,16 @@ export const optionsSchema = z.object({
 });
 
 export const questionnaireSchema = z.object({
-  question_markdown: z.string().describe("Question in markdown"), 
+  question_markdown: z.string().describe("Question in markdown"),
   level: z.enum(levelEnumList).describe("Level of the question"),
   options: z
     .array(optionsSchema)
     .length(4)
     .describe("Array of 4 answer options"),
   solution: z.number().describe("ID of the correct answer option"),
-  explanation: z.string().describe("Explanation of the correct answer in markdown"),
+  explanation: z
+    .string()
+    .describe("Explanation of the correct answer in markdown"),
 });
 
 export const generateReadingTaskResponseSchema = z.object({
@@ -102,6 +103,27 @@ export type UrlExtractionSchemaType = z.infer<typeof urlExtractionSchema>;
 export type GenerateReadingTaskResponseType = z.infer<
   typeof generateReadingTaskResponseSchema
 >;
+
+export function transformQuestionnaires(
+  questionnaires: OriginalQuestionnaire[],
+): TransformedQuestionnaire[] {
+  return questionnaires.map((q: OriginalQuestionnaire, index: number) => {
+    const options: TransformedOption[] = q.options.map((opt) => ({
+      ...opt,
+      slug: generateSlug(opt.text),
+    }));
+
+    const solutionOption = options.find((o) => o.id === q.solution) ?? null;
+
+    return {
+      id: index + 1,
+      ...q,
+      title: q.question_markdown,
+      options,
+      solution: solutionOption,
+    };
+  });
+}
 
 // We use LangGraph's Annotation API to define the state object that flows through our nodes.
 export const GraphState = Annotation.Root({
@@ -180,24 +202,7 @@ export const createReadingTaskChain = async (
 
     const transformed: TransformedReadingTaskResponse = {
       ...response,
-      questionnaires: response.questionnaires.map(
-        (q: OriginalQuestionnaire, index: number) => {
-          const options: TransformedOption[] = q.options.map((opt) => ({
-            ...opt,
-            slug: generateSlug(opt.text),
-          }));
-
-          const solutionOption =
-            options.find((o) => o.id === q.solution) ?? null;
-
-          return {
-            id: index + 1,
-            ...q,
-            options,
-            solution: solutionOption,
-          };
-        },
-      ),
+      questionnaires: transformQuestionnaires(response.questionnaires),
     };
     return { finalOutput: transformed };
   };

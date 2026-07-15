@@ -1,13 +1,14 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import z from "zod";
-import { questionnaireSchema } from "./readingTask.chain";
+import {
+  questionnaireSchema,
+  transformQuestionnaires,
+} from "./readingTask.chain";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { LlmWithConfig } from "../types/llmConfigType";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { generateQuizTasksPrompt, createQuizPlanPrompt } from "../prompts";
-import logger from "../utils/logger";
-import { generateSlug } from "../utils/slug-utils";
 
 export interface TransformedOption {
   id: number;
@@ -84,23 +85,7 @@ export const createQuizTaskChain = async (
     });
 
     const transformed: TransformedQuizTaskResponse = {
-      questionnaires: response.questionnaires.map(
-        (q: z.infer<typeof questionnaireSchema>, index: number) => {
-          const options: TransformedOption[] = q.options.map((opt) => ({
-            ...opt,
-            slug: generateSlug(opt.text),
-          }));
-
-          const solutionOption = options.find((o) => o.id === q.solution) ?? null;
-
-          return {
-            id: index + 1,
-            ...q,
-            options,
-            solution: solutionOption,
-          };
-        },
-      ),
+      questionnaires: transformQuestionnaires(response.questionnaires),
     };
 
     return { finalOutput: transformed };
