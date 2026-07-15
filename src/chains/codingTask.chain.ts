@@ -6,10 +6,9 @@ import z from "zod";
 import { LlmWithConfig } from "../types/llmConfigType";
 import { createCodingProblemsPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
+import { levelEnumList } from "../enums";
 
 extendZodWithOpenApi(z);
-
-const difficultySchema = z.enum(["Easy", "Medium", "Hard"]);
 
 const exampleSchema = z.object({
 	input: z.string().describe("Sample input for the problem"),
@@ -17,14 +16,14 @@ const exampleSchema = z.object({
 });
 
 const functionSignatureSchema = z.object({
-	language: z.enum(["cpp"]).describe("Programming language for the solution"),
+	language: z.enum(levelEnumList).describe("Programming language for the solution"),
 	functionName: z.string().describe("Expected function name"),
 });
 
 export const codingProblemSchema = z.object({
 	title: z.string().describe("Problem title"),
-	difficulty: difficultySchema.describe("Problem difficulty"),
-	description: z.string().describe("Complete problem statement"),
+	level: z.enum(levelEnumList).describe("Level of the question"),
+	question_markdown: z.string().describe("Complete problem statement in markdown"),
 	constraints: z
 		.array(z.string())
 		.min(1)
