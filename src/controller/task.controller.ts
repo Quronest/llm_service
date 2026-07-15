@@ -5,7 +5,7 @@ import { generatePlan } from "../chains/task.chain";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { validateZodSchema } from "../utils/validateZodSchema";
-import { taskCreateInputValidationSchema } from "../schemas/taskGenerateInputValidation.schema";
+import { dailyPlanGenerateInputValidationSchema } from "../schemas/dailyPlanGenerateInputValidation.schema";
 import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { createQuizTaskChain } from "../chains/quizTask.chain";
 import { createReadingTaskChain } from "../chains/readingTask.chain";
@@ -15,7 +15,7 @@ import logger from "../utils/logger";
 export const generateDailyPlan = asyncHandler(
   async (req: Request, res: Response) => {
     const validateData = await validateZodSchema(
-      taskCreateInputValidationSchema,
+      dailyPlanGenerateInputValidationSchema,
       req.body,
     );
 

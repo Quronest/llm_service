@@ -19,7 +19,7 @@ import {
   levelEnumList,
 } from "../enums";
 import { LlmWithConfig } from "../types/llmConfigType";
-import { TaskCreateInputType } from "../schemas/taskGenerateInputValidation.schema";
+import { DailyPlanGenerateInputType } from "../schemas/dailyPlanGenerateInputValidation.schema";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -105,7 +105,7 @@ export const createDailyPlanChain = (
 };
 
 export const generatePlan = async (
-  data: TaskCreateInputType,
+  data: DailyPlanGenerateInputType,
   llm: LlmWithConfig,
 ) => {
   const { user_context: userContext } = data;
