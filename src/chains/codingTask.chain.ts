@@ -6,7 +6,7 @@ import z from "zod";
 import { LlmWithConfig } from "../types/llmConfigType";
 import { createCodingProblemsPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
-import { levelEnumList } from "../enums";
+import { languageEnumList, levelEnumList } from "../enums";
 
 extendZodWithOpenApi(z);
 
@@ -16,7 +16,7 @@ const exampleSchema = z.object({
 });
 
 const functionSignatureSchema = z.object({
-	language: z.enum(levelEnumList).describe("Programming language for the solution"),
+	language: z.enum(languageEnumList).describe("Programming language for the solution"),
 	functionName: z.string().describe("Expected function name"),
 });
 
@@ -35,7 +35,7 @@ export const codingProblemSchema = z.object({
 });
 
 export const generateCodingProblemsResponseSchema = z.object({
-	problems: z.array(codingProblemSchema).min(3).max(5),
+	problems: z.array(codingProblemSchema).length(1),
 });
 
 const codingProblemsParser = StructuredOutputParser.fromZodSchema(
