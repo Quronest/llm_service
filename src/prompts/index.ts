@@ -43,6 +43,10 @@ export const createCodingProblemsPrompt: string = await readPromptFile(
   "createCodingProblemsPrompt.md",
 );
 
+export const findCodingProblemUrlsPrompt: string = await readPromptFile(
+  "findCodingProblemUrlsPrompt.md",
+);
+
 export const generateCodingTestCasesPrompt: string = await readPromptFile(
   "generateCodingTestCasesPrompt.md",
 );
