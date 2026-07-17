@@ -21,7 +21,10 @@ registry.register("UserSummaryData", swaggerUserSummaryGenerationSchema);
 registry.register("ApiResponse", apiResponseSchema);
 registry.register("TaskGenerateContext", taskGenerateValidationSchema);
 registry.register("AssistantChat", assistantchatContextValidationSchema);
-registry.register("CodingProblemsResponse", generateCodingProblemsResponseSchema);
+registry.register(
+  "CodingProblemsResponse",
+  generateCodingProblemsResponseSchema,
+);
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const components = generator.generateComponents();

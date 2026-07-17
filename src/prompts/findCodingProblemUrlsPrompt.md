@@ -11,7 +11,7 @@ Find publicly accessible question URLs from authoritative competitive programmin
 ### 3. Execution Steps (What to Do)
 
 1. Analyze the `{context}` carefully.
-2. Use the `{questionCount}` to guide how many candidate URLs you should prioritize.
+2. Decide the number of coding problems to generate (between 1 and 3) according to the topic of the problem and user context/level.
 3. Prefer public problem pages from LeetCode, GeeksforGeeks, Codeforces, HackerRank, AtCoder, CSES, or similar authoritative sources.
 4. Return only problem URLs, not editorial pages, solution blogs, or category pages.
 5. Provide a small set of high-confidence candidate URLs that can be fetched and filtered later.
@@ -26,7 +26,6 @@ Find publicly accessible question URLs from authoritative competitive programmin
 ### 5. Input Schema
 
 - **Context:** {context}
-- **Question Count:** {questionCount}
 
 ### 6. Output Schema & Format
 

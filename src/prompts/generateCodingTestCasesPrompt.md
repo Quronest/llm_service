@@ -17,10 +17,10 @@ Generate robust test cases for each coding problem.
 3. Ensure all test cases match the problem constraints and function intent.
 4. Public cases should be representative and easy to verify.
 5. Hidden cases should include edge cases, corner cases, and stress-pattern cases.
-7. Ensure deterministic outputs.
-8. Return the test cases in the same order as the input `problems` array.
-9. Do not include problem titles or any extra metadata in the output.
-10. Return JSON only, following the output schema.
+6. Ensure deterministic outputs.
+7. Return the test cases in the same order as the input `problems` array.
+8. Do not include problem titles or any extra metadata in the output.
+9. Return JSON only, following the output schema.
 
 ### 4. Constraints & Rules (What NOT to Do)
 

@@ -119,10 +119,11 @@ export const generateCodingTasks = asyncHandler(
 
 export const generateCodingTestCases = asyncHandler(
   async (req: Request, res: Response) => {
-    const validateData = await validateZodSchema<GenerateCodingTestCasesInputType>(
-      generateCodingTestCasesInputSchema,
-      req.body,
-    );
+    const validateData =
+      await validateZodSchema<GenerateCodingTestCasesInputType>(
+        generateCodingTestCasesInputSchema,
+        req.body,
+      );
 
     const llm = geminiLLM();
 

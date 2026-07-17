@@ -51,15 +51,12 @@ export const generateCodingTestCasesPrompt: string = await readPromptFile(
   "generateCodingTestCasesPrompt.md",
 );
 
-export const assistantPrompt: string = await readPromptFile(
-  "assistantPrompt.md",
-);
+export const assistantPrompt: string =
+  await readPromptFile("assistantPrompt.md");
 
-export const chatTitlePrompt: string = await readPromptFile(
-  "chatTitlePrompt.md",
-);
+export const chatTitlePrompt: string =
+  await readPromptFile("chatTitlePrompt.md");
 
 export const chatSummaryPrompt: string = await readPromptFile(
   "chatSummaryPrompt.md",
 );
-

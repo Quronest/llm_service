@@ -108,7 +108,7 @@ router.post("/generate-quiz-task", verifyToken, generateQuizTasks);
  * /llm/api/v1/tasks/generate-coding-task:
  *   post:
  *     summary: Generate coding tasks
- *     description: Accepts task context and returns coding problems with titles, constraints, examples, and function signatures.
+ *     description: Accepts task context, user context, and plan context to generate coding problems with titles, constraints, examples, and function signatures.
  *     security:
  *       - BearerAuth: []
  *     requestBody:
