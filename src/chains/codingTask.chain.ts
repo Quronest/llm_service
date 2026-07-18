@@ -13,6 +13,7 @@ import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.sc
 import { languageEnumList, levelEnumList } from "../enums";
 import { extractURLText } from "../tools/extractURLText.tool";
 import { createModuleLogger } from "../utils/logger";
+import { urlsContextParser } from "../utils/urlContextParser";
 
 extendZodWithOpenApi(z);
 
@@ -70,7 +71,7 @@ type ScrapedSource = {
 };
 
 export const codingUrlExtractionSchema = z.object({
-  urls: z.array(z.url()).min(3).max(8),
+  urls: z.array(z.url()).min(1).max(3),
   questionCount: z
     .number()
     .min(1)
@@ -126,6 +127,7 @@ export const createCodingProblemsChain = async (
     const successfulUrls: string[] = [];
 
     for (const url of state.urls) {
+      if (successfulUrls.length >= state.questionCount) break;
       try {
         const response = await fetch(url);
 
@@ -150,7 +152,11 @@ export const createCodingProblemsChain = async (
       }
     }
 
-    return { scrapedSources, urls: successfulUrls };
+    return {
+      scrapedSources,
+      urls: successfulUrls,
+      questionCount: Math.min(state.questionCount, successfulUrls.length),
+    };
   };
 
   const generateTaskNode = async (state: typeof GraphState.State) => {
@@ -163,12 +169,7 @@ export const createCodingProblemsChain = async (
     const response = await chain.invoke({
       context: state.context,
       questionCount: state.questionCount,
-      scrapedContent: state.scrapedSources
-        .map(
-          (source, index) =>
-            `Source ${index + 1}: ${source.url}\n${source.content}`,
-        )
-        .join("\n\n---\n\n"),
+      scrapedContent: urlsContextParser(state.scrapedSources),
       validUrls: JSON.stringify(state.urls),
       format_instructions: codingProblemsParser.getFormatInstructions(),
     });
