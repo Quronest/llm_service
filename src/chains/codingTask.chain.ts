@@ -7,13 +7,15 @@ import z from "zod";
 import { LlmWithConfig } from "../types/llmConfigType";
 import {
   createCodingProblemsPrompt,
-  findCodingProblemUrlsPrompt,
+  generateSearchQueryPrompt,
+  selectCodingProblemUrlsPrompt,
 } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { languageEnumList, levelEnumList } from "../enums";
 import { extractURLText } from "../tools/extractURLText.tool";
-import { createModuleLogger } from "../utils/logger";
+import logger, { createModuleLogger } from "../utils/logger";
 import { urlsContextParser } from "../utils/urlContextParser";
+import { searchTool } from "../tools/search.tool";
 
 extendZodWithOpenApi(z);
 
@@ -87,6 +89,14 @@ const codingUrlExtractionParser = StructuredOutputParser.fromZodSchema(
 
 export const GraphState = Annotation.Root({
   context: Annotation<string>(),
+  searchQuery: Annotation<string>({
+    reducer: (state, update) => update,
+    default: () => "",
+  }),
+  searchResults: Annotation<any[]>({
+    reducer: (state, update) => update,
+    default: () => [],
+  }),
   questionCount: Annotation<number>({
     reducer: (state, update) => update,
     default: () => 1,
@@ -109,13 +119,59 @@ export const createCodingProblemsChain = async (
   input: { codingContext: TaskGenerateValidationType },
   llm: LlmWithConfig,
 ) => {
-  const findUrlsNode = async (state: typeof GraphState.State) => {
-    const prompt = PromptTemplate.fromTemplate(findCodingProblemUrlsPrompt);
+  const generateSearchQueryNode = async (state: typeof GraphState.State) => {
+    const prompt = PromptTemplate.fromTemplate(generateSearchQueryPrompt);
+    const schema = z.object({
+      searchQuery: z
+        .string()
+        .describe("The exact search query string to execute"),
+    });
+    const generateSearchQueryParser =
+      StructuredOutputParser.fromZodSchema(schema);
+
+    const structuredLlm = llm.withStructuredOutput(schema);
+    const chain = prompt.pipe(structuredLlm);
+
+    const response = await chain.invoke({
+      context: state.context,
+      format_instructions: generateSearchQueryParser.getFormatInstructions(),
+    });
+    logger.info(`Generated Search Query: "${response.searchQuery}"`);
+
+    return { searchQuery: response.searchQuery };
+  };
+
+  const executeSearchNode = async (state: typeof GraphState.State) => {
+    let results: any[] = [];
+    try {
+      logger.info(`Searching web for query: "${state.searchQuery}"`);
+      const rawResults = await searchTool.invoke({ query: state.searchQuery });
+
+      results =
+        typeof rawResults === "string" ? JSON.parse(rawResults) : rawResults;
+    } catch (error) {
+      logger.warn(
+        `Search tool invocation failed: ${error}. Falling back to empty results.`,
+      );
+      results = [
+        {
+          snippet:
+            "Search unavailable. Rely on your standard, verified competitive programming problem URLs for this topic.",
+        },
+      ];
+    }
+
+    return { searchResults: results };
+  };
+
+  const selectUrlsNode = async (state: typeof GraphState.State) => {
+    const prompt = PromptTemplate.fromTemplate(selectCodingProblemUrlsPrompt);
     const structuredLlm = llm.withStructuredOutput(codingUrlExtractionSchema);
     const chain = prompt.pipe(structuredLlm);
 
     const response = await chain.invoke({
       context: state.context,
+      search_results: JSON.stringify(state.searchResults),
       format_instructions: codingUrlExtractionParser.getFormatInstructions(),
     });
 
@@ -129,7 +185,18 @@ export const createCodingProblemsChain = async (
     for (const url of state.urls) {
       if (successfulUrls.length >= state.questionCount) break;
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, {  //mask the fetch to avoid block by cloudflare
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "cross-site",
+            "Cache-Control": "max-age=0",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -178,11 +245,15 @@ export const createCodingProblemsChain = async (
   };
 
   const workflow = new StateGraph(GraphState)
-    .addNode("findUrls", findUrlsNode)
+    .addNode("generateSearchQuery", generateSearchQueryNode)
+    .addNode("executeSearch", executeSearchNode)
+    .addNode("selectUrls", selectUrlsNode)
     .addNode("scrapeUrls", scrapeUrlsNode)
     .addNode("generateTask", generateTaskNode)
-    .addEdge(START, "findUrls")
-    .addEdge("findUrls", "scrapeUrls")
+    .addEdge(START, "generateSearchQuery")
+    .addEdge("generateSearchQuery", "executeSearch")
+    .addEdge("executeSearch", "selectUrls")
+    .addEdge("selectUrls", "scrapeUrls")
     .addEdge("scrapeUrls", "generateTask")
     .addEdge("generateTask", END);
 

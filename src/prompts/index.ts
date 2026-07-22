@@ -47,6 +47,14 @@ export const findCodingProblemUrlsPrompt: string = await readPromptFile(
   "findCodingProblemUrlsPrompt.md",
 );
 
+export const generateSearchQueryPrompt: string = await readPromptFile(
+  "generateSearchQueryPrompt.md",
+);
+
+export const selectCodingProblemUrlsPrompt: string = await readPromptFile(
+  "selectCodingProblemUrlsPrompt.md",
+);
+
 export const generateCodingTestCasesPrompt: string = await readPromptFile(
   "generateCodingTestCasesPrompt.md",
 );
