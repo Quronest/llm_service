@@ -128,7 +128,7 @@ export const generateCodingTestCases = asyncHandler(
     const llm = geminiLLM();
 
     const response = await createCodingTestCasesChain(
-      { codingProblems: validateData },
+      { codingProblem: validateData },
       llm,
     );
 

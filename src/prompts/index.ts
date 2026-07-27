@@ -59,6 +59,10 @@ export const generateCodingTestCasesPrompt: string = await readPromptFile(
   "generateCodingTestCasesPrompt.md",
 );
 
+export const resolveCodingSolutionPrompt: string = await readPromptFile(
+  "resolveCodingSolutionPrompt.md",
+);
+
 export const assistantPrompt: string =
   await readPromptFile("assistantPrompt.md");
 

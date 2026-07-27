@@ -39,7 +39,7 @@ export const codingProblemSchema = z.object({
   question_markdown: z
     .string()
     .describe("Complete problem statement in markdown"),
-  source_url: z.url().describe("Public source URL for the original problem"),
+  source_url: z.string().url().describe("Public source URL for the original problem"),
   constraints: z
     .array(z.string())
     .min(1)
@@ -73,7 +73,7 @@ type ScrapedSource = {
 };
 
 export const codingUrlExtractionSchema = z.object({
-  urls: z.array(z.url()).min(1).max(3),
+  urls: z.array(z.string().url()).min(1).max(3),
   questionCount: z
     .number()
     .min(1)
@@ -185,7 +185,7 @@ export const createCodingProblemsChain = async (
     for (const url of state.urls) {
       if (successfulUrls.length >= state.questionCount) break;
       try {
-        const response = await fetch(url, {  //mask the fetch to avoid block by cloudflare
+        const response = await fetch(url, {  // mask the fetch to avoid block by cloudflare
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -196,13 +196,13 @@ export const createCodingProblemsChain = async (
             "Sec-Fetch-Site": "cross-site",
             "Cache-Control": "max-age=0",
           },
-        });
+        }); // make separate tool
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const html = await response.text();
+        const html = await response.text(); //
         const filteredText = extractURLText(html);
 
         if (filteredText.trim().length < 200) {
