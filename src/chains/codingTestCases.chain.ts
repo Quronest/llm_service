@@ -5,7 +5,9 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { HumanMessage } from "@langchain/core/messages";
 import { createAgent } from "langchain";
 import { LlmWithConfig } from "../types/llmConfigType";
-import { codingProblemSchema, GenerateCodingProblemsResponseType } from "./codingTask.chain";
+import {
+  codingProblemSchema,
+} from "./codingTask.chain";
 import logger from "../utils/logger";
 import geminiLLM from "../llm/gemini.llm";
 import { mcpClient } from "../mcp/client";
@@ -13,6 +15,7 @@ import {
   generateCodingTestCasesPrompt,
   resolveCodingSolutionPrompt,
 } from "../prompts";
+import { executeOnJudge0 } from "../tools/executeCode.tool";
 
 extendZodWithOpenApi(z);
 
@@ -21,10 +24,7 @@ const ioTestCaseSchema = z.object({
   output: z.string().describe("Expected judge output"),
 });
 
-export const problemTestCasesSchema = z.object({
-  public: z.array(ioTestCaseSchema).min(1).max(4),
-  hidden: z.array(ioTestCaseSchema).min(3).max(10),
-});
+export const problemTestCasesSchema = z.array(ioTestCaseSchema);
 
 export const generateCodingTestCasesInputSchema = codingProblemSchema;
 
@@ -56,59 +56,10 @@ export const TestCaseGraphState = Annotation.Root({
   }),
 });
 
-async function executeOnJudge0(
-  sourceCode: string,
-  stdin: string,
-): Promise<string> {
-  const JUDGE0_URL = process.env.JUDGE0_URL || "http://localhost:2358";
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (process.env.JUDGE0_AUTH_TOKEN) {
-    headers["X-Auth-Token"] = process.env.JUDGE0_AUTH_TOKEN;
-  }
-
-  try {
-    const response = await fetch(
-      `${JUDGE0_URL}/submissions?base64_encoded=false&wait=true`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          source_code: sourceCode,
-          language_id: 71, // Python 3
-          stdin: stdin,
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.status?.id !== 3 && data.status?.id !== 4) {
-      logger.warn(
-        `Judge0 Error (${data.status?.description}): ${
-          data.compile_output || data.stderr || "Unknown error"
-        }`,
-      );
-    }
-
-    return (data.stdout || "").trim();
-  } catch (error) {
-    logger.error(`Judge0 execution failed: ${error}`);
-    return "JUDGE_ERROR";
-  }
-}
-
 export const createCodingTestCasesChain = async (
   input: { codingProblem: GenerateCodingTestCasesInputType },
   llm: LlmWithConfig,
 ) => {
-  
   const dynamicMcpTools = await mcpClient.getTools();
   logger.info(
     `Loaded ${dynamicMcpTools.length} dynamic tool(s) from MCP Server`,
@@ -128,12 +79,10 @@ export const createCodingTestCasesChain = async (
     const problem = state.codingProblem;
     logger.info(`Resolving optimal Python solution for: "${problem.title}"`);
 
-    const agentPromptTemplate = PromptTemplate.fromTemplate(resolveCodingSolutionPrompt);
-    const agentPrompt = await agentPromptTemplate.format({
-      title: problem.title,
-      question_markdown: problem.question_markdown,
-      constraints: problem.constraints.join("\n"),
-    });
+    const agentPromptTemplate = PromptTemplate.fromTemplate(
+      resolveCodingSolutionPrompt,
+    );
+    const agentPrompt = await agentPromptTemplate.format(problem);
 
     const result = await mcpAgent.invoke({
       messages: [new HumanMessage(agentPrompt)],
@@ -190,7 +139,7 @@ export const createCodingTestCasesChain = async (
 
     if (!inputsSet) {
       logger.warn(`No inputs found for problem`);
-      return { finalOutput: { public: [], hidden: [] } };
+      return { finalOutput: [] };
     }
 
     logger.info(
@@ -213,10 +162,10 @@ export const createCodingTestCasesChain = async (
       }),
     );
 
-    const finalOutput = {
-      public: publicResults.filter((r) => r.output !== "JUDGE_ERROR"),
-      hidden: hiddenResults.filter((r) => r.output !== "JUDGE_ERROR"),
-    };
+    const finalOutput = [
+      ...publicResults,
+      ...hiddenResults,
+    ].filter((r) => r.output !== "JUDGE_ERROR");
 
     return { finalOutput };
   };

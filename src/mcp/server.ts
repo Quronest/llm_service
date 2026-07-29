@@ -34,6 +34,3 @@ mcpRouter.all("/mcp", async (req, res) => {
   await transport.handleRequest(req, res);
 });
 
-const server = createMcpServer();
-
-export default server;

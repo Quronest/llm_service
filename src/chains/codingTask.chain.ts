@@ -13,9 +13,11 @@ import {
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { languageEnumList, levelEnumList } from "../enums";
 import { extractURLText } from "../tools/extractURLText.tool";
+import { browserFetch } from "../tools/browserFetch.tool";
 import logger, { createModuleLogger } from "../utils/logger";
 import { urlsContextParser } from "../utils/urlContextParser";
 import { searchTool } from "../tools/search.tool";
+import { mcpClient } from "../mcp/client";
 
 extendZodWithOpenApi(z);
 
@@ -39,7 +41,10 @@ export const codingProblemSchema = z.object({
   question_markdown: z
     .string()
     .describe("Complete problem statement in markdown"),
-  source_url: z.string().url().describe("Public source URL for the original problem"),
+  source_url: z
+    .string()
+    .url()
+    .describe("Public source URL for the original problem"),
   constraints: z
     .array(z.string())
     .min(1)
@@ -119,6 +124,16 @@ export const createCodingProblemsChain = async (
   input: { codingContext: TaskGenerateValidationType },
   llm: LlmWithConfig,
 ) => {
+  let dynamicMcpTools: any[] = [];
+  try {
+    dynamicMcpTools = await mcpClient.getTools();
+    logger.info(
+      `Loaded ${dynamicMcpTools.length} dynamic tool(s) from MCP Server`,
+    );
+  } catch (error) {
+    logger.warn(`Failed to load dynamic tools from MCP Server: ${error}`);
+  }
+
   const generateSearchQueryNode = async (state: typeof GraphState.State) => {
     const prompt = PromptTemplate.fromTemplate(generateSearchQueryPrompt);
     const schema = z.object({
@@ -144,8 +159,20 @@ export const createCodingProblemsChain = async (
   const executeSearchNode = async (state: typeof GraphState.State) => {
     let results: any[] = [];
     try {
-      logger.info(`Searching web for query: "${state.searchQuery}"`);
-      const rawResults = await searchTool.invoke({ query: state.searchQuery });
+      const mcpWebSearch = dynamicMcpTools.find(
+        (tool) => tool.name === "web_search",
+      );
+
+      let rawResults: any;
+      if (mcpWebSearch) {
+        logger.info(`Searching web via MCP for query: "${state.searchQuery}"`);
+        rawResults = await mcpWebSearch.invoke({ query: state.searchQuery });
+      } else {
+        logger.info(
+          `Searching web via fallback searchTool for query: "${state.searchQuery}"`,
+        );
+        rawResults = await searchTool.invoke({ query: state.searchQuery });
+      }
 
       results =
         typeof rawResults === "string" ? JSON.parse(rawResults) : rawResults;
@@ -185,24 +212,7 @@ export const createCodingProblemsChain = async (
     for (const url of state.urls) {
       if (successfulUrls.length >= state.questionCount) break;
       try {
-        const response = await fetch(url, {  // mask the fetch to avoid block by cloudflare
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "cross-site",
-            "Cache-Control": "max-age=0",
-          },
-        }); // make separate tool
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const html = await response.text(); //
+        const html = await browserFetch(url);
         const filteredText = extractURLText(html);
 
         if (filteredText.trim().length < 200) {

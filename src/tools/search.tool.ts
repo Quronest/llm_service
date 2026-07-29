@@ -12,7 +12,9 @@ export async function executeWebSearch(query: string): Promise<string> {
     const results = await searchTool.invoke({ query });
     return typeof results === "string" ? results : JSON.stringify(results);
   } catch (error) {
-    logger.warn(`Search failed for query "${query}": ${error}. Returning empty context.`);
+    logger.warn(
+      `Search failed for query "${query}": ${error}. Returning empty context.`,
+    );
     return "No search results available. Generate the solution independently based on standard algorithms.";
   }
 }
