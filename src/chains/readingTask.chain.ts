@@ -38,7 +38,7 @@ export interface TransformedReadingTaskResponse extends Omit<
 
 export const sourceSchema = z.object({
   name: z.string().describe("Name of the source"),
-  url: z.url().describe("URL of the source"),
+  url: z.string().url().describe("URL of the source"),
 });
 
 export const optionsSchema = z.object({
@@ -85,7 +85,7 @@ export const generateReadingTaskResponseSchema = z.object({
 
 const urlExtractionSchema = z.object({
   urls: z
-    .array(z.url())
+    .array(z.string().url())
     .min(5)
     .max(8)
     .describe("List of relevant URLs found based on the context"),

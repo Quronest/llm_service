@@ -134,29 +134,26 @@ export const createCodingProblemsChain = async (
     logger.warn(`Failed to load dynamic tools from MCP Server: ${error}`);
   }
 
-  const generateSearchQueryNode = async (state: typeof GraphState.State) => {
-    const prompt = PromptTemplate.fromTemplate(generateSearchQueryPrompt);
-    const schema = z.object({
+  const searchAndSelectUrlsNode = async (state: typeof GraphState.State) => {
+    const queryPrompt = PromptTemplate.fromTemplate(generateSearchQueryPrompt);
+    const querySchema = z.object({
       searchQuery: z
         .string()
         .describe("The exact search query string to execute"),
     });
     const generateSearchQueryParser =
-      StructuredOutputParser.fromZodSchema(schema);
+      StructuredOutputParser.fromZodSchema(querySchema);
 
-    const structuredLlm = llm.withStructuredOutput(schema);
-    const chain = prompt.pipe(structuredLlm);
+    const structuredLlmForQuery = llm.withStructuredOutput(querySchema);
+    const queryChain = queryPrompt.pipe(structuredLlmForQuery);
 
-    const response = await chain.invoke({
+    const queryResponse = await queryChain.invoke({
       context: state.context,
       format_instructions: generateSearchQueryParser.getFormatInstructions(),
     });
-    logger.info(`Generated Search Query: "${response.searchQuery}"`);
+    const searchQuery = queryResponse.searchQuery;
+    logger.info(`Generated Search Query: "${searchQuery}"`);
 
-    return { searchQuery: response.searchQuery };
-  };
-
-  const executeSearchNode = async (state: typeof GraphState.State) => {
     let results: any[] = [];
     try {
       const mcpWebSearch = dynamicMcpTools.find(
@@ -165,13 +162,13 @@ export const createCodingProblemsChain = async (
 
       let rawResults: any;
       if (mcpWebSearch) {
-        logger.info(`Searching web via MCP for query: "${state.searchQuery}"`);
-        rawResults = await mcpWebSearch.invoke({ query: state.searchQuery });
+        logger.info(`Searching web via MCP for query: "${searchQuery}"`);
+        rawResults = await mcpWebSearch.invoke({ query: searchQuery });
       } else {
         logger.info(
-          `Searching web via fallback searchTool for query: "${state.searchQuery}"`,
+          `Searching web via fallback searchTool for query: "${searchQuery}"`,
         );
-        rawResults = await searchTool.invoke({ query: state.searchQuery });
+        rawResults = await searchTool.invoke({ query: searchQuery });
       }
 
       results =
@@ -188,21 +185,22 @@ export const createCodingProblemsChain = async (
       ];
     }
 
-    return { searchResults: results };
-  };
+    const selectPrompt = PromptTemplate.fromTemplate(selectCodingProblemUrlsPrompt);
+    const structuredLlmForSelect = llm.withStructuredOutput(codingUrlExtractionSchema);
+    const selectChain = selectPrompt.pipe(structuredLlmForSelect);
 
-  const selectUrlsNode = async (state: typeof GraphState.State) => {
-    const prompt = PromptTemplate.fromTemplate(selectCodingProblemUrlsPrompt);
-    const structuredLlm = llm.withStructuredOutput(codingUrlExtractionSchema);
-    const chain = prompt.pipe(structuredLlm);
-
-    const response = await chain.invoke({
+    const selectResponse = await selectChain.invoke({
       context: state.context,
-      search_results: JSON.stringify(state.searchResults),
+      search_results: JSON.stringify(results),
       format_instructions: codingUrlExtractionParser.getFormatInstructions(),
     });
 
-    return { urls: response.urls, questionCount: response.questionCount };
+    return {
+      searchQuery,
+      searchResults: results,
+      urls: selectResponse.urls,
+      questionCount: selectResponse.questionCount,
+    };
   };
 
   const scrapeUrlsNode = async (state: typeof GraphState.State) => {
@@ -255,15 +253,11 @@ export const createCodingProblemsChain = async (
   };
 
   const workflow = new StateGraph(GraphState)
-    .addNode("generateSearchQuery", generateSearchQueryNode)
-    .addNode("executeSearch", executeSearchNode)
-    .addNode("selectUrls", selectUrlsNode)
+    .addNode("searchAndSelectUrls", searchAndSelectUrlsNode)
     .addNode("scrapeUrls", scrapeUrlsNode)
     .addNode("generateTask", generateTaskNode)
-    .addEdge(START, "generateSearchQuery")
-    .addEdge("generateSearchQuery", "executeSearch")
-    .addEdge("executeSearch", "selectUrls")
-    .addEdge("selectUrls", "scrapeUrls")
+    .addEdge(START, "searchAndSelectUrls")
+    .addEdge("searchAndSelectUrls", "scrapeUrls")
     .addEdge("scrapeUrls", "generateTask")
     .addEdge("generateTask", END);
 
