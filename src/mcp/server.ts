@@ -33,4 +33,3 @@ mcpRouter.all("/mcp", async (req, res) => {
 
   await transport.handleRequest(req, res);
 });
-

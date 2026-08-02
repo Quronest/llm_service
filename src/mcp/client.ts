@@ -38,4 +38,3 @@ export const connectMcpClient = async (): Promise<void> => {
     }
   }
 };
-

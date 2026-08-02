@@ -5,9 +5,7 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { HumanMessage } from "@langchain/core/messages";
 import { createAgent } from "langchain";
 import { LlmWithConfig } from "../types/llmConfigType";
-import {
-  codingProblemSchema,
-} from "./codingTask.chain";
+import { codingProblemSchema } from "./codingTask.chain";
 import logger from "../utils/logger";
 import geminiLLM from "../llm/gemini.llm";
 import { mcpClient } from "../mcp/client";
@@ -162,10 +160,9 @@ export const createCodingTestCasesChain = async (
       }),
     );
 
-    const finalOutput = [
-      ...publicResults,
-      ...hiddenResults,
-    ].filter((r) => r.output !== "JUDGE_ERROR");
+    const finalOutput = [...publicResults, ...hiddenResults].filter(
+      (r) => r.output !== "JUDGE_ERROR",
+    );
 
     return { finalOutput };
   };

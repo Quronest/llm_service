@@ -16,4 +16,3 @@ server.on("error", (error) => {
   log.error(`Server error: ${error.message}`);
   throw error;
 });
-

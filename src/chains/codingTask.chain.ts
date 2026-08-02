@@ -4,11 +4,12 @@ import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import z from "zod";
 
+import { HumanMessage } from "@langchain/core/messages";
+import { createAgent } from "langchain";
 import { LlmWithConfig } from "../types/llmConfigType";
 import {
   createCodingProblemsPrompt,
-  generateSearchQueryPrompt,
-  selectCodingProblemUrlsPrompt,
+  findCodingProblemUrlsPrompt,
 } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { languageEnumList, levelEnumList } from "../enums";
@@ -18,6 +19,7 @@ import logger, { createModuleLogger } from "../utils/logger";
 import { urlsContextParser } from "../utils/urlContextParser";
 import { searchTool } from "../tools/search.tool";
 import { mcpClient } from "../mcp/client";
+import geminiLLM from "../llm/gemini.llm";
 
 extendZodWithOpenApi(z);
 
@@ -135,69 +137,57 @@ export const createCodingProblemsChain = async (
   }
 
   const searchAndSelectUrlsNode = async (state: typeof GraphState.State) => {
-    const queryPrompt = PromptTemplate.fromTemplate(generateSearchQueryPrompt);
-    const querySchema = z.object({
-      searchQuery: z
-        .string()
-        .describe("The exact search query string to execute"),
+    
+    const llm = geminiLLM(); 
+
+    const mcpAgent = createAgent({
+      model: llm,
+      tools: dynamicMcpTools,
     });
-    const generateSearchQueryParser =
-      StructuredOutputParser.fromZodSchema(querySchema);
 
-    const structuredLlmForQuery = llm.withStructuredOutput(querySchema);
-    const queryChain = queryPrompt.pipe(structuredLlmForQuery);
+    logger.info(`Searching and selecting coding problem URLs using mcpAgent`);
 
-    const queryResponse = await queryChain.invoke({
+    const agentPromptTemplate = PromptTemplate.fromTemplate(
+      findCodingProblemUrlsPrompt,
+    );
+    const agentPrompt = await agentPromptTemplate.format({
       context: state.context,
-      format_instructions: generateSearchQueryParser.getFormatInstructions(),
-    });
-    const searchQuery = queryResponse.searchQuery;
-    logger.info(`Generated Search Query: "${searchQuery}"`);
-
-    let results: any[] = [];
-    try {
-      const mcpWebSearch = dynamicMcpTools.find(
-        (tool) => tool.name === "web_search",
-      );
-
-      let rawResults: any;
-      if (mcpWebSearch) {
-        logger.info(`Searching web via MCP for query: "${searchQuery}"`);
-        rawResults = await mcpWebSearch.invoke({ query: searchQuery });
-      } else {
-        logger.info(
-          `Searching web via fallback searchTool for query: "${searchQuery}"`,
-        );
-        rawResults = await searchTool.invoke({ query: searchQuery });
-      }
-
-      results =
-        typeof rawResults === "string" ? JSON.parse(rawResults) : rawResults;
-    } catch (error) {
-      logger.warn(
-        `Search tool invocation failed: ${error}. Falling back to empty results.`,
-      );
-      results = [
-        {
-          snippet:
-            "Search unavailable. Rely on your standard, verified competitive programming problem URLs for this topic.",
-        },
-      ];
-    }
-
-    const selectPrompt = PromptTemplate.fromTemplate(selectCodingProblemUrlsPrompt);
-    const structuredLlmForSelect = llm.withStructuredOutput(codingUrlExtractionSchema);
-    const selectChain = selectPrompt.pipe(structuredLlmForSelect);
-
-    const selectResponse = await selectChain.invoke({
-      context: state.context,
-      search_results: JSON.stringify(results),
       format_instructions: codingUrlExtractionParser.getFormatInstructions(),
     });
 
+    const result = await mcpAgent.invoke({
+      messages: [new HumanMessage(agentPrompt)],
+    });
+
+    const rawContent = result.messages.at(-1)?.content;
+    const contentString =
+      typeof rawContent === "string" ? rawContent.trim() : "";
+
+    let selectResponse: z.infer<typeof codingUrlExtractionSchema>;
+    try {
+      selectResponse = await codingUrlExtractionParser.parse(contentString);
+    } catch (parseError) {
+      logger.warn(
+        `Failed to parse structured output with LangChain parser: ${parseError}. Trying custom JSON extraction.`,
+      );
+      try {
+        // Strip markdown code fences if present
+        const cleanContent = contentString
+          .replace(/```json/i, "")
+          .replace(/```/g, "")
+          .trim();
+        selectResponse = JSON.parse(cleanContent);
+      } catch (fallbackError) {
+        logger.error(`Fallback JSON parsing also failed: ${fallbackError}`);
+        throw new Error(
+          `Failed to parse URL extraction response: ${contentString}`,
+        );
+      }
+    }
+
     return {
-      searchQuery,
-      searchResults: results,
+      searchQuery: "",
+      searchResults: [],
       urls: selectResponse.urls,
       questionCount: selectResponse.questionCount,
     };
