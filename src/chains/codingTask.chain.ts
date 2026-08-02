@@ -20,6 +20,8 @@ import { urlsContextParser } from "../utils/urlContextParser";
 import { searchTool } from "../tools/search.tool";
 import { mcpClient } from "../mcp/client";
 import geminiLLM from "../llm/gemini.llm";
+import { ApiError } from "../utils/ApiError";
+import { StatusCodes } from "http-status-codes";
 
 extendZodWithOpenApi(z);
 
@@ -170,19 +172,7 @@ export const createCodingProblemsChain = async (
       logger.warn(
         `Failed to parse structured output with LangChain parser: ${parseError}. Trying custom JSON extraction.`,
       );
-      try {
-        // Strip markdown code fences if present
-        const cleanContent = contentString
-          .replace(/```json/i, "")
-          .replace(/```/g, "")
-          .trim();
-        selectResponse = JSON.parse(cleanContent);
-      } catch (fallbackError) {
-        logger.error(`Fallback JSON parsing also failed: ${fallbackError}`);
-        throw new Error(
-          `Failed to parse URL extraction response: ${contentString}`,
-        );
-      }
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to parse");
     }
 
     return {
