@@ -2,7 +2,7 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import logger from "../utils/logger";
 
 const mcpServerUrl =
-  process.env.MCP_SERVER_URL || "http://localhost:3000/llm/api/v1/mcp/mcp";
+  process.env.MCP_SERVER_URL || "http://localhost:4000/llm/api/v1/mcp/mcp";
 
 export const mcpClient = new MultiServerMCPClient({
   mcpServers: {

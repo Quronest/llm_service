@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 
 import geminiLLM from "../llm/gemini.llm";
+import getOpenrouterLLM from "../llm/openrouter";
 import { generatePlan } from "../chains/task.chain";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -15,8 +17,7 @@ import {
   generateCodingTestCasesInputSchema,
   type GenerateCodingTestCasesInputType,
 } from "../chains/codingTestCases.chain";
-import type { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
-import { StatusCodes } from "http-status-codes";
+
 
 export const generateDailyPlan = asyncHandler(
   async (req: Request, res: Response) => {

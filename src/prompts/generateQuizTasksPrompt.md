@@ -37,7 +37,7 @@ Generate a complete quiz by strictly following the provided quiz plan and learni
 12. **Mathematical & Scientific Formatting (LaTeX):**
     - Always use LaTeX formatting for mathematical expressions, equations, formulas, symbols, or scientific notation in the question title, options, or explanation.
     - Use inline LaTeX with single dollar signs (e.g., `$E = mc^2$`) for inline formulas.
-    - Use display LaTeX with double dollar signs (e.g., `$$\sum_{i=1}^n i = \frac{n(n+1)}{2}$$`) on a separate line for standalone equations or block formulas.
+    - Use display LaTeX with double dollar signs (e.g., `$$\sum_{{i=1}}^n i = \frac{{n(n+1)}}{{2}}$$`) on a separate line for standalone equations or block formulas.
 13. Format the output strictly as JSON according to the **Output Schema & Format** (Section 6).
 
 ### 4. Constraints & Rules (What NOT to Do)

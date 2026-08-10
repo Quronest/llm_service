@@ -16,4 +16,5 @@ export const env = {
   GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   PUBLIC_KEY_PATH: process.env.PUBLIC_KEY_PATH,
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
 } as const;

@@ -2,15 +2,16 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import z from "zod";
+
 import { LlmWithConfig } from "../types/llmConfigType";
 import { findUrlsPrompt, generateReadingTasksPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
-import logger, { createModuleLogger } from "../utils/logger";
+import { createModuleLogger } from "../utils/logger";
 import { extractURLText } from "../tools/extractURLText.tool";
 import { generateSlug } from "../utils/slug-utils";
 import { levelEnumList } from "../enums";
 
-const log = createModuleLogger(import.meta.url);
+const logger = createModuleLogger(import.meta.url);
 
 type OriginalQuestionnaire =
   GenerateReadingTaskResponseType["questionnaires"][number];
@@ -178,7 +179,7 @@ export const createReadingTaskChain = async (
         contents.push(`Content from ${url}:\n${filteredText}`);
         successfulUrls.push(url);
       } catch (err) {
-        log.warn(`Failed to process ${url}: ${err}`);
+        logger.warn(`Failed to process ${url}: ${err}`);
       }
     }
 
@@ -199,7 +200,8 @@ export const createReadingTaskChain = async (
       validUrls: JSON.stringify(state.urls),
       format_instructions: readingTaskParser.getFormatInstructions(),
     });
-
+    console.log(response);
+    
     const transformed: TransformedReadingTaskResponse = {
       ...response,
       questionnaires: transformQuestionnaires(response.questionnaires),
