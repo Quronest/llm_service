@@ -1,12 +1,9 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { PromptTemplate } from "@langchain/core/prompts";
-import z from "zod";
-import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { HumanMessage } from "@langchain/core/messages";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { createAgent } from "langchain";
-import { LlmWithConfig } from "../types/llmConfigType";
-import { codingProblemSchema } from "./codingTask.chain";
-import logger from "../utils/logger";
+import z from "zod";
+
 import geminiLLM from "../llm/gemini.llm";
 import { mcpClient } from "../mcp/client";
 import {
@@ -14,8 +11,9 @@ import {
   resolveCodingSolutionPrompt,
 } from "../prompts";
 import { executeOnJudge0 } from "../tools/executeCode.tool";
-
-extendZodWithOpenApi(z);
+import { LlmWithConfig } from "../types/llmConfigType";
+import logger from "../utils/logger";
+import { codingProblemSchema } from "./codingTask.chain";
 
 const ioTestCaseSchema = z.object({
   input: z.string().describe("Judge input"),

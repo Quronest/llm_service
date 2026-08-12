@@ -1,29 +1,25 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { PromptTemplate } from "@langchain/core/prompts";
+import { HumanMessage } from "@langchain/core/messages";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
+import { StatusCodes } from "http-status-codes";
+import { createAgent } from "langchain";
 import z from "zod";
 
-import { HumanMessage } from "@langchain/core/messages";
-import { createAgent } from "langchain";
-import { LlmWithConfig } from "../types/llmConfigType";
+import { languageEnumList, levelEnumList } from "../enums";
+import geminiLLM from "../llm/gemini.llm";
+import { mcpClient } from "../mcp/client";
 import {
   createCodingProblemsPrompt,
   findCodingProblemUrlsPrompt,
 } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
-import { languageEnumList, levelEnumList } from "../enums";
-import { extractURLText } from "../tools/extractURLText.tool";
 import { browserFetch } from "../tools/browserFetch.tool";
+import { extractURLText } from "../tools/extractURLText.tool";
+import { LlmWithConfig } from "../types/llmConfigType";
+import { ApiError } from "../utils/ApiError";
 import logger, { createModuleLogger } from "../utils/logger";
 import { urlsContextParser } from "../utils/urlContextParser";
-import { searchTool } from "../tools/search.tool";
-import { mcpClient } from "../mcp/client";
-import geminiLLM from "../llm/gemini.llm";
-import { ApiError } from "../utils/ApiError";
-import { StatusCodes } from "http-status-codes";
-
-extendZodWithOpenApi(z);
 
 const log = createModuleLogger(import.meta.url);
 
