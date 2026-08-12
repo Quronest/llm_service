@@ -7,7 +7,7 @@ import { LlmWithConfig } from "../types/llmConfigType";
 import { findUrlsPrompt, generateReadingTasksPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { createModuleLogger } from "../utils/logger";
-import { extractURLText } from "../tools/extractURLText.tool";
+import { browserFetch } from "../tools/browserFetch.tool";
 import { generateSlug } from "../utils/slug-utils";
 import { levelEnumList } from "../enums";
 
@@ -166,17 +166,12 @@ export const createReadingTaskChain = async (
 
     for (const url of state.urls) {
       try {
-        const response = await fetch(url);
+        const content = await browserFetch(
+          url,
+          "extract the main article text and key information",
+        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const html = await response.text();
-
-        const filteredText = extractURLText(html);
-
-        contents.push(`Content from ${url}:\n${filteredText}`);
+        contents.push(`Content from ${url}:\n${content}`);
         successfulUrls.push(url);
       } catch (err) {
         logger.warn(`Failed to process ${url}: ${err}`);

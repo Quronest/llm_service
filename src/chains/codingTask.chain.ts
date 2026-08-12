@@ -15,7 +15,6 @@ import {
 } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { browserFetch } from "../tools/browserFetch.tool";
-import { extractURLText } from "../tools/extractURLText.tool";
 import { LlmWithConfig } from "../types/llmConfigType";
 import { ApiError } from "../utils/ApiError";
 import logger, { createModuleLogger } from "../utils/logger";
@@ -186,16 +185,18 @@ export const createCodingProblemsChain = async (
     for (const url of state.urls) {
       if (successfulUrls.length >= state.questionCount) break;
       try {
-        const html = await browserFetch(url);
-        const filteredText = extractURLText(html);
+        const content = await browserFetch(
+          url,
+          "extract the coding problem description, title, constraints, memory limit, time limit, and sample inputs/outputs",
+        );
 
-        if (filteredText.trim().length < 200) {
+        if (content.trim().length < 50) {
           continue;
         }
 
         scrapedSources.push({
           url,
-          content: filteredText,
+          content,
         });
         successfulUrls.push(url);
       } catch (err) {
