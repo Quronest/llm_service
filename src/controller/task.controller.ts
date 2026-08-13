@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 
 import geminiLLM from "../llm/gemini.llm";
+import getOpenrouterLLM from "../llm/openrouter";
 import { generatePlan } from "../chains/task.chain";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -9,8 +11,13 @@ import { dailyPlanGenerateInputValidationSchema } from "../schemas/dailyPlanGene
 import { taskGenerateValidationSchema } from "../schemas/taskGenerateValidation.schema";
 import { createQuizTaskChain } from "../chains/quizTask.chain";
 import { createReadingTaskChain } from "../chains/readingTask.chain";
-import { StatusCodes } from "http-status-codes";
-import logger from "../utils/logger";
+import { createCodingProblemsChain } from "../chains/codingTask.chain";
+import {
+  createCodingTestCasesChain,
+  generateCodingTestCasesInputSchema,
+  type GenerateCodingTestCasesInputType,
+} from "../chains/codingTestCases.chain";
+
 
 export const generateDailyPlan = asyncHandler(
   async (req: Request, res: Response) => {
@@ -80,6 +87,59 @@ export const generateReadingTasks = asyncHandler(
           StatusCodes.OK,
           response,
           "Reading tasks generated successfully",
+        ),
+      );
+  },
+);
+
+export const generateCodingTasks = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validateData = await validateZodSchema(
+      taskGenerateValidationSchema,
+      req.body,
+    );
+
+    const llm = geminiLLM();
+
+    const response = await createCodingProblemsChain(
+      { codingContext: validateData },
+      llm,
+    );
+
+    return res
+      .status(StatusCodes.OK)
+      .json(
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "Coding problems generated successfully",
+        ),
+      );
+  },
+);
+
+export const generateCodingTestCases = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validateData =
+      await validateZodSchema<GenerateCodingTestCasesInputType>(
+        generateCodingTestCasesInputSchema,
+        req.body,
+      );
+
+    const llm = geminiLLM();
+
+    const response = await createCodingTestCasesChain(
+      { codingProblem: validateData },
+      llm,
+    );
+
+    return res
+      .status(StatusCodes.OK)
+      .json(
+        new ApiResponse(
+          StatusCodes.OK,
+          response,
+          "Coding test cases generated successfully",
         ),
       );
   },

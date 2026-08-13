@@ -20,14 +20,16 @@ Generate a complete quiz by strictly following the provided quiz plan and learni
 8. Generate the exact number of questions specified in the plan.
 9. If scenario-based questions are requested, create realistic scenarios.
 10. For every question:
-   - Write a clear question in markdown. If the question includes code, format it with a proper markdown code block specifying the language (e.g. ` ```javascript `).
-   - Generate options in markdown if applicable. Use inline backticks for code references (e.g., `const x = 5`).
-   - Specify the correct answer(s).
-   - Provide a concise explanation in markdown of why the answer is correct. If explaining code behavior, use inline backticks for variables, functions, and proper code blocks for larger code chunks.
-   - Include the question difficulty.
-   - Include the topic and subtopic.
-   - Include the question type.
-   - Include the Bloom's Taxonomy cognitive level if applicable.
+
+- Write a clear question in markdown. If the question includes code, format it with a proper markdown code block specifying the language (e.g. ` ```javascript `).
+- Generate options in markdown if applicable. Use inline backticks for code references (e.g., `const x = 5`).
+- Specify the correct answer(s).
+- Provide a concise explanation in markdown of why the answer is correct. If explaining code behavior, use inline backticks for variables, functions, and proper code blocks for larger code chunks.
+- Include the question difficulty.
+- Include the topic and subtopic.
+- Include the question type.
+- Include the Bloom's Taxonomy cognitive level if applicable.
+
 11. **Coding Question Formatting:**
     - Always use multi-line markdown code blocks with the correct language syntax highlighting tag (e.g. ` ```typescript `, ` ```html `, ` ```css `, ` ```sql `, ` ```python `) for any code snippets in the question title, options, or explanation.
     - Always use inline backticks (e.g., `` `variable` ``) for keywords, variable names, functions, class names, file paths, and tiny code expressions.
@@ -35,7 +37,7 @@ Generate a complete quiz by strictly following the provided quiz plan and learni
 12. **Mathematical & Scientific Formatting (LaTeX):**
     - Always use LaTeX formatting for mathematical expressions, equations, formulas, symbols, or scientific notation in the question title, options, or explanation.
     - Use inline LaTeX with single dollar signs (e.g., `$E = mc^2$`) for inline formulas.
-    - Use display LaTeX with double dollar signs (e.g., `$$\sum_{i=1}^n i = \frac{n(n+1)}{2}$$`) on a separate line for standalone equations or block formulas.
+    - Use display LaTeX with double dollar signs (e.g., `$$\sum_{{i=1}}^n i = \frac{{n(n+1)}}{{2}}$$`) on a separate line for standalone equations or block formulas.
 13. Format the output strictly as JSON according to the **Output Schema & Format** (Section 6).
 
 ### 4. Constraints & Rules (What NOT to Do)

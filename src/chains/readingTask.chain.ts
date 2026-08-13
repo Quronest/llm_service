@@ -2,15 +2,16 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import z from "zod";
+
 import { LlmWithConfig } from "../types/llmConfigType";
 import { findUrlsPrompt, generateReadingTasksPrompt } from "../prompts";
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
-import logger, { createModuleLogger } from "../utils/logger";
-import { extractURLText } from "../tools/extractURLText.tool";
+import { createModuleLogger } from "../utils/logger";
+import { browserFetch } from "../tools/browserFetch.tool";
 import { generateSlug } from "../utils/slug-utils";
 import { levelEnumList } from "../enums";
 
-const log = createModuleLogger(import.meta.url);
+const logger = createModuleLogger(import.meta.url);
 
 type OriginalQuestionnaire =
   GenerateReadingTaskResponseType["questionnaires"][number];
@@ -38,7 +39,7 @@ export interface TransformedReadingTaskResponse extends Omit<
 
 export const sourceSchema = z.object({
   name: z.string().describe("Name of the source"),
-  url: z.url().describe("URL of the source"),
+  url: z.string().url().describe("URL of the source"),
 });
 
 export const optionsSchema = z.object({
@@ -85,7 +86,7 @@ export const generateReadingTaskResponseSchema = z.object({
 
 const urlExtractionSchema = z.object({
   urls: z
-    .array(z.url())
+    .array(z.string().url())
     .min(5)
     .max(8)
     .describe("List of relevant URLs found based on the context"),
@@ -165,20 +166,15 @@ export const createReadingTaskChain = async (
 
     for (const url of state.urls) {
       try {
-        const response = await fetch(url);
+        const content = await browserFetch(
+          url,
+          "extract the main article text and key information",
+        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const html = await response.text();
-
-        const filteredText = extractURLText(html);
-
-        contents.push(`Content from ${url}:\n${filteredText}`);
+        contents.push(`Content from ${url}:\n${content}`);
         successfulUrls.push(url);
       } catch (err) {
-        log.warn(`Failed to process ${url}: ${err}`);
+        logger.warn(`Failed to process ${url}: ${err}`);
       }
     }
 
@@ -199,7 +195,8 @@ export const createReadingTaskChain = async (
       validUrls: JSON.stringify(state.urls),
       format_instructions: readingTaskParser.getFormatInstructions(),
     });
-
+    console.log(response);
+    
     const transformed: TransformedReadingTaskResponse = {
       ...response,
       questionnaires: transformQuestionnaires(response.questionnaires),

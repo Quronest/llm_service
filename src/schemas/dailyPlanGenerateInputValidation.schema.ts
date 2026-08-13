@@ -1,8 +1,6 @@
 import z from "zod";
-import { userContextValidationSchema } from "./userContext.schema";
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 
-extendZodWithOpenApi(z);
+import { userContextValidationSchema } from "./userContext.schema";
 
 export const dailyPlanGenerateInputValidationSchema = z.object({
   user_context: userContextValidationSchema,
@@ -11,6 +9,3 @@ export const dailyPlanGenerateInputValidationSchema = z.object({
 export type DailyPlanGenerateInputType = z.infer<
   typeof dailyPlanGenerateInputValidationSchema
 >;
-
-export const swaggerDailyPlanGenerateInputSchema =
-  dailyPlanGenerateInputValidationSchema;

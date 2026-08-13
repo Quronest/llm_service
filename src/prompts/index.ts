@@ -39,15 +39,36 @@ export const createQuizPlanPrompt: string = await readPromptFile(
   "createQuizPlanPrompt.md",
 );
 
-export const assistantPrompt: string = await readPromptFile(
-  "assistantPrompt.md",
+export const createCodingProblemsPrompt: string = await readPromptFile(
+  "createCodingProblemsPrompt.md",
 );
 
-export const chatTitlePrompt: string = await readPromptFile(
-  "chatTitlePrompt.md",
+export const findCodingProblemUrlsPrompt: string = await readPromptFile(
+  "findCodingProblemUrlsPrompt.md",
 );
+
+export const generateSearchQueryPrompt: string = await readPromptFile(
+  "generateSearchQueryPrompt.md",
+);
+
+export const selectCodingProblemUrlsPrompt: string = await readPromptFile(
+  "selectCodingProblemUrlsPrompt.md",
+);
+
+export const generateCodingTestCasesPrompt: string = await readPromptFile(
+  "generateCodingTestCasesPrompt.md",
+);
+
+export const resolveCodingSolutionPrompt: string = await readPromptFile(
+  "resolveCodingSolutionPrompt.md",
+);
+
+export const assistantPrompt: string =
+  await readPromptFile("assistantPrompt.md");
+
+export const chatTitlePrompt: string =
+  await readPromptFile("chatTitlePrompt.md");
 
 export const chatSummaryPrompt: string = await readPromptFile(
   "chatSummaryPrompt.md",
 );
-
