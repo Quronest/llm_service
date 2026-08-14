@@ -2,7 +2,6 @@ import { HumanMessage } from "@langchain/core/messages";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
-import { StatusCodes } from "http-status-codes";
 import { createAgent } from "langchain";
 import z from "zod";
 
@@ -16,7 +15,6 @@ import {
 import { TaskGenerateValidationType } from "../schemas/taskGenerateValidation.schema";
 import { browserFetch } from "../tools/browserFetch.tool";
 import { LlmWithConfig } from "../types/llmConfigType";
-import { ApiError } from "../utils/ApiError";
 import logger, { createModuleLogger } from "../utils/logger";
 import { urlsContextParser } from "../utils/urlContextParser";
 
@@ -134,71 +132,102 @@ export const createCodingProblemsChain = async (
   }
 
   const searchAndSelectUrlsNode = async (state: typeof GraphState.State) => {
-    
-    const llm = geminiLLM(); 
+    const gemLLM = geminiLLM();
 
-    const mcpAgent = createAgent({
-      model: llm,
-      tools: dynamicMcpTools,
-    });
-
-    logger.info(`Searching and selecting coding problem URLs using mcpAgent`);
-
-    const agentPromptTemplate = PromptTemplate.fromTemplate(
-      findCodingProblemUrlsPrompt,
-    );
-    const agentPrompt = await agentPromptTemplate.format({
-      context: state.context,
-      format_instructions: codingUrlExtractionParser.getFormatInstructions(),
-    });
-
-    const result = await mcpAgent.invoke({
-      messages: [new HumanMessage(agentPrompt)],
-    });
-
-    const rawContent = result.messages.at(-1)?.content;
-    const contentString =
-      typeof rawContent === "string" ? rawContent.trim() : "";
-
-    let selectResponse: z.infer<typeof codingUrlExtractionSchema>;
+    let resultMessagesContent = "";
     try {
-      selectResponse = await codingUrlExtractionParser.parse(contentString);
-    } catch (parseError) {
-      logger.warn(
-        `Failed to parse structured output with LangChain parser: ${parseError}. Trying custom JSON extraction.`,
+      const mcpAgent = createAgent({
+        model: gemLLM,
+        tools: dynamicMcpTools,
+      });
+
+      logger.info(`Searching and selecting coding problem URLs using mcpAgent`);
+
+      const agentPromptTemplate = PromptTemplate.fromTemplate(
+        findCodingProblemUrlsPrompt,
       );
-      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to parse");
+      const agentPrompt = await agentPromptTemplate.format({
+        context: state.context,
+        format_instructions: codingUrlExtractionParser.getFormatInstructions(),
+      });
+
+      const result = await mcpAgent.invoke({
+        messages: [new HumanMessage(agentPrompt)],
+      });
+
+      const rawContent = result.messages.at(-1)?.content;
+      if (typeof rawContent === "string") {
+        resultMessagesContent = rawContent.trim();
+      } else if (Array.isArray(rawContent)) {
+        resultMessagesContent = rawContent
+          .map((c: any) => (typeof c === "string" ? c : c?.text || ""))
+          .join("\n")
+          .trim();
+      }
+    } catch (agentErr) {
+      logger.warn(`mcpAgent execution encountered issue: ${agentErr}`);
+    }
+
+    let selectResponse: z.infer<typeof codingUrlExtractionSchema> | null = null;
+    if (resultMessagesContent) {
+      try {
+        selectResponse = await codingUrlExtractionParser.parse(resultMessagesContent);
+      } catch (parseError) {
+        logger.warn(
+          `Failed to parse structured output with LangChain parser: ${parseError}. Trying regex extraction.`,
+        );
+        const jsonMatch = resultMessagesContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            selectResponse = codingUrlExtractionSchema.parse(parsed);
+          } catch (jsonErr) {
+            logger.warn(`Regex JSON parse failed: ${jsonErr}`);
+          }
+        }
+      }
+    }
+
+    // Direct structured LLM fallback if agent didn't return valid schema
+    if (!selectResponse) {
+      logger.info("Falling back to direct structured LLM for URL selection");
+      const structuredLlm = gemLLM.withStructuredOutput(codingUrlExtractionSchema);
+      const agentPromptTemplate = PromptTemplate.fromTemplate(
+        findCodingProblemUrlsPrompt,
+      );
+      const agentPrompt = await agentPromptTemplate.format({
+        context: state.context,
+        format_instructions: codingUrlExtractionParser.getFormatInstructions(),
+      });
+      selectResponse = await structuredLlm.invoke(agentPrompt);
     }
 
     return {
       searchQuery: "",
       searchResults: [],
       urls: selectResponse.urls,
-      questionCount: selectResponse.questionCount,
+      questionCount: Math.max(1, selectResponse.questionCount || 1),
     };
   };
 
   const scrapeUrlsNode = async (state: typeof GraphState.State) => {
     const scrapedSources: ScrapedSource[] = [];
-    const successfulUrls: string[] = [];
+    const targetCount = Math.max(1, state.questionCount || 1);
 
     for (const url of state.urls) {
-      if (successfulUrls.length >= state.questionCount) break;
+      if (scrapedSources.length >= targetCount) break;
       try {
         const content = await browserFetch(
           url,
           "extract the coding problem description, title, constraints, memory limit, time limit, and sample inputs/outputs",
         );
 
-        if (content.trim().length < 50) {
-          continue;
+        if (content && content.trim().length >= 50) {
+          scrapedSources.push({
+            url,
+            content,
+          });
         }
-
-        scrapedSources.push({
-          url,
-          content,
-        });
-        successfulUrls.push(url);
       } catch (err) {
         log.warn(`Failed to process ${url}: ${err}`);
       }
@@ -206,21 +235,22 @@ export const createCodingProblemsChain = async (
 
     return {
       scrapedSources,
-      urls: successfulUrls,
-      questionCount: Math.min(state.questionCount, successfulUrls.length),
+      urls: state.urls,
+      questionCount: targetCount,
     };
   };
 
   const generateTaskNode = async (state: typeof GraphState.State) => {
+    const count = Math.max(1, state.questionCount || 1);
     const prompt = PromptTemplate.fromTemplate(createCodingProblemsPrompt);
     const structuredLlm = llm.withStructuredOutput(
-      buildGenerateCodingProblemsResponseSchema(state.questionCount),
+      buildGenerateCodingProblemsResponseSchema(count),
     );
     const chain = prompt.pipe(structuredLlm);
 
     const response = await chain.invoke({
       context: state.context,
-      questionCount: state.questionCount,
+      questionCount: count,
       scrapedContent: urlsContextParser(state.scrapedSources),
       validUrls: JSON.stringify(state.urls),
       format_instructions: codingProblemsParser.getFormatInstructions(),

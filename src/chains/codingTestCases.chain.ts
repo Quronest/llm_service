@@ -56,37 +56,65 @@ export const createCodingTestCasesChain = async (
   input: { codingProblem: GenerateCodingTestCasesInputType },
   llm: LlmWithConfig,
 ) => {
-  const dynamicMcpTools = await mcpClient.getTools();
-  logger.info(
-    `Loaded ${dynamicMcpTools.length} dynamic tool(s) from MCP Server`,
-  );
+  let dynamicMcpTools: any[] = [];
+  try {
+    dynamicMcpTools = await mcpClient.getTools();
+    logger.info(
+      `Loaded ${dynamicMcpTools.length} dynamic tool(s) from MCP Server`,
+    );
+  } catch (error) {
+    logger.warn(`Failed to load dynamic tools from MCP Server: ${error}`);
+  }
 
   const resolveSolutionsWithMCPNode = async (
     state: typeof TestCaseGraphState.State,
   ) => {
     let canonicalSolution = "";
-    const llm = geminiLLM();
-    // Create a dynamic sub-agent equipped with MCP tools
-    const mcpAgent = createAgent({
-      model: llm,
-      tools: dynamicMcpTools,
-    });
-
+    const gemLLM = geminiLLM();
     const problem = state.codingProblem;
     logger.info(`Resolving optimal Python solution for: "${problem.title}"`);
 
     const agentPromptTemplate = PromptTemplate.fromTemplate(
       resolveCodingSolutionPrompt,
     );
-    const agentPrompt = await agentPromptTemplate.format(problem);
-
-    const result = await mcpAgent.invoke({
-      messages: [new HumanMessage(agentPrompt)],
+    const agentPrompt = await agentPromptTemplate.format({
+      title: problem.title,
+      question_markdown: problem.question_markdown,
+      constraints: Array.isArray(problem.constraints)
+        ? problem.constraints.join("\n")
+        : problem.constraints,
     });
 
-    const rawContent = result.messages.at(-1)?.content;
-    const solutionCode =
-      typeof rawContent === "string" ? rawContent.trim() : "";
+    let solutionCode = "";
+    try {
+      const mcpAgent = createAgent({
+        model: gemLLM,
+        tools: dynamicMcpTools,
+      });
+
+      const result = await mcpAgent.invoke({
+        messages: [new HumanMessage(agentPrompt)],
+      });
+
+      const rawContent = result.messages.at(-1)?.content;
+      if (typeof rawContent === "string") {
+        solutionCode = rawContent.trim();
+      } else if (Array.isArray(rawContent)) {
+        solutionCode = rawContent
+          .map((c: any) => (typeof c === "string" ? c : c?.text || ""))
+          .join("\n")
+          .trim();
+      }
+    } catch (agentErr) {
+      logger.warn(`mcpAgent failed to resolve solution, falling back to direct LLM: ${agentErr}`);
+      try {
+        const directRes = await gemLLM.invoke([new HumanMessage(agentPrompt)]);
+        solutionCode =
+          typeof directRes.content === "string" ? directRes.content.trim() : "";
+      } catch (directErr) {
+        logger.warn(`Direct LLM solution fallback error: ${directErr}`);
+      }
+    }
 
     // Clean backtick fences if model included them
     const cleanedCode = solutionCode
@@ -121,7 +149,9 @@ export const createCodingTestCasesChain = async (
     const problem = state.codingProblem;
     const response = await chain.invoke({
       title: problem.title,
-      constraints: problem.constraints.join("\n"),
+      constraints: Array.isArray(problem.constraints)
+        ? problem.constraints.join("\n")
+        : problem.constraints,
       examples: JSON.stringify(problem.examples),
       solutionSnippet: (state.canonicalSolution || "").slice(0, 300),
     });

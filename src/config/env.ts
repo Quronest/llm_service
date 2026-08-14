@@ -17,4 +17,6 @@ export const env = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   PUBLIC_KEY_PATH: process.env.PUBLIC_KEY_PATH,
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+  TAVILY_API_KEY: process.env.TAVILY_API_KEY,
+  MCP_SERVER_URL: process.env.MCP_SERVER_URL,
 } as const;

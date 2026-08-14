@@ -1,9 +1,11 @@
 import { TavilySearch } from "@langchain/tavily";
+
 import logger from "../utils/logger";
+import { env } from "../config/env";
 
 export const searchTool = new TavilySearch({
   maxResults: 5,
-  tavilyApiKey: process.env.TAVILY_API_KEY,
+  tavilyApiKey: env.TAVILY_API_KEY || process.env.TAVILY_API_KEY,
 });
 
 export async function executeWebSearch(query: string): Promise<string> {

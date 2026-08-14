@@ -4,13 +4,15 @@ services:
   server:
     image: judge0/judge0:latest
     container_name: quronest_llm_agent_judge0
+    privileged: true
     restart: unless-stopped
     ports:
       - "2358:2358"
     volumes:
       - ./judge0.conf:/judge0.conf:ro
     environment:
-      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       POSTGRES_HOST: db
       POSTGRES_PORT: 5436
       POSTGRES_DB: judge0
@@ -24,12 +26,14 @@ services:
   worker:
     image: judge0/judge0:latest
     container_name: quronest_llm_agent_judge0_worker
+    privileged: true
     restart: unless-stopped
     command: ["./scripts/workers"]
     volumes:
       - ./judge0.conf:/judge0.conf:ro
     environment:
-      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       POSTGRES_HOST: db
       POSTGRES_PORT: 5436
       POSTGRES_DB: judge0

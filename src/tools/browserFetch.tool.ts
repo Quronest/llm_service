@@ -1,18 +1,16 @@
 import { WebBrowser } from "@langchain/classic/tools/webbrowser";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
-import geminiLLM from "../llm/gemini.llm";
-import { env } from "../config/env";
+import geminiLLM, { geminiEmbeddings } from "../llm/gemini.llm";
+import { extractURLText } from "./extractURLText.tool";
+import { executeWebSearch } from "./search.tool";
+import logger from "../utils/logger";
 
 export async function browserFetch(
   url: string,
   query: string = "",
 ): Promise<string> {
   const model = geminiLLM();
-  const embeddings = new GoogleGenerativeAIEmbeddings({
-    apiKey: env.GOOGLE_API_KEY,
-    modelName: "gemini-embedding-001",
-  });
+  const embeddings = geminiEmbeddings();
 
   const headers = {
     "User-Agent":
@@ -27,14 +25,46 @@ export async function browserFetch(
     "Cache-Control": "max-age=0",
   };
 
-  const browser = new WebBrowser({
-    model,
-    embeddings,
-    headers,
-  });
+  try {
+    const browser = new WebBrowser({
+      model,
+      embeddings,
+      headers,
+    });
 
-  // WebBrowser expects input: "valid URL","query or empty string for summary"
-  const input = `"${url}","${query.replace(/"/g, '\\"')}"`;
-  const result = await browser.invoke(input);
-  return result;
+    // WebBrowser expects input: "valid URL","query or empty string for summary"
+    const input = `"${url}","${query.replace(/"/g, '\\"')}"`;
+    const result = await browser.invoke(input);
+    if (result && result.trim().length >= 50) {
+      return result;
+    }
+  } catch (error) {
+    logger.warn(`WebBrowser tool failed for ${url}: ${error}. Attempting direct fetch fallback...`);
+  }
+
+  // Fallback 1: Direct HTML fetch + cheerio extraction
+  try {
+    const response = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
+    if (response.ok) {
+      const html = await response.text();
+      const extracted = extractURLText(html);
+      if (extracted && extracted.trim().length >= 50) {
+        return extracted;
+      }
+    }
+  } catch (directError) {
+    logger.warn(`Direct fetch fallback failed for ${url}: ${directError}`);
+  }
+
+  // Fallback 2: Tavily web search for page content
+  try {
+    const searchFallback = await executeWebSearch(`${url} ${query}`);
+    if (searchFallback && searchFallback.trim().length >= 50) {
+      return searchFallback;
+    }
+  } catch (searchError) {
+    logger.warn(`Search fallback failed for ${url}: ${searchError}`);
+  }
+
+  return `Problem from ${url}`;
 }

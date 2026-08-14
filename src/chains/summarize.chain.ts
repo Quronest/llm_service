@@ -3,6 +3,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import type { RunnableLike } from "@langchain/core/runnables";
 import { z } from "zod";
+
 import { LlmWithConfig } from "../types/llmConfigType";
 
 const summarySchema = z.object({

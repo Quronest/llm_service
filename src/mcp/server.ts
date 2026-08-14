@@ -1,26 +1,81 @@
+import crypto from "node:crypto";
+
 import { Router } from "express";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 import { registerWebSearchTool } from "./tools/webSearch.tool";
 import logger from "../utils/logger";
 
 export const mcpRouter = Router();
 
-// Helper to create and configure a new MCP server instance per session
+interface McpSession {
+  server: McpServer;
+  transport: StreamableHTTPServerTransport;
+  connected: boolean;
+}
 
-function createMcpServer(): McpServer {
+const sessions = new Map<string, McpSession>();
+
+export function createMcpSessionInstance(sessionId?: string): McpSession {
   const server = new McpServer({
     name: "quronest-llm-service-mcp",
     version: "1.0.0",
   });
 
-  logger.info("MCP server initialized");
-
   registerWebSearchTool(server);
 
-  return server;
+  let currentSessionId = sessionId;
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => {
+      currentSessionId = sessionId || crypto.randomUUID();
+      return currentSessionId;
+    },
+  });
+
+  transport.onerror = (error: unknown) => {
+    logger.error(`MCP transport error: ${error}`);
+  };
+
+  server.server.onerror = (error: Error) => {
+    logger.error(`MCP server error: ${error}`);
+  };
+
+  const sessionObj: McpSession = {
+    server,
+    transport,
+    connected: false,
+  };
+
+  if (sessionId) {
+    sessions.set(sessionId, sessionObj);
+  }
+
+  return sessionObj;
 }
+
+// Default session for eager initialization
+let defaultSession: McpSession | null = null;
+
+export const initMcpServer = async (): Promise<void> => {
+  if (!defaultSession) {
+    defaultSession = createMcpSessionInstance();
+  }
+  if (!defaultSession.connected) {
+    logger.info("Initializing MCP server connection to default transport...");
+    await defaultSession.server.connect(defaultSession.transport);
+    defaultSession.connected = true;
+    if (defaultSession.transport.sessionId) {
+      sessions.set(defaultSession.transport.sessionId, defaultSession);
+    }
+    logger.info("MCP server successfully initialized and connected");
+  }
+};
+
+// Eager initialization at module load
+initMcpServer().catch((error) => {
+  logger.error(`Failed to initialize MCP server at module load: ${error}`);
+});
 
 mcpRouter.all("/mcp", async (req, res) => {
   logger.info(`Received MCP request: ${req.method} ${req.url}`);
@@ -28,25 +83,31 @@ mcpRouter.all("/mcp", async (req, res) => {
   logger.debug(`MCP Request body: ${JSON.stringify(req.body)}`);
 
   try {
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
+    const headerSessionId = req.headers["mcp-session-id"] as string | undefined;
 
-    transport.onerror = (error: unknown) => {
-      logger.error(`MCP transport error: ${error}`);
-    };
+    let session: McpSession | undefined;
+    if (headerSessionId && sessions.has(headerSessionId)) {
+      session = sessions.get(headerSessionId)!;
+    } else {
+      session = createMcpSessionInstance(headerSessionId);
+    }
 
-    const server = createMcpServer();
-
-    server.server.onerror = (error: Error) => {
-      logger.error(`MCP server error: ${error}`);
-    };
-
-    await server.connect(transport);
+    if (!session.connected) {
+      await session.server.connect(session.transport);
+      session.connected = true;
+      if (session.transport.sessionId) {
+        sessions.set(session.transport.sessionId, session);
+      }
+    }
 
     // Pass req.body as the third parameter since express.json() middleware parses it,
     // which consumes the raw request stream and makes transport.handleRequest fail if not provided.
-    await transport.handleRequest(req, res, req.body);
+    await session.transport.handleRequest(req, res, req.body);
+
+    if (session.transport.sessionId && !sessions.has(session.transport.sessionId)) {
+      sessions.set(session.transport.sessionId, session);
+    }
+
     logger.info(`Successfully handled MCP request: ${req.method} ${req.url}`);
   } catch (error) {
     logger.error(`Failed to handle MCP request: ${error}`);
