@@ -12,7 +12,7 @@ export const domain = {
   ROBOTICS: "ROBOTICS",
   VIRTUAL_REALITY: "VIRTUAL_REALITY",
   AUGMENTED_REALITY: "AUGMENTED_REALITY",
-  PROGRAMMING: "PROGRAMMING",
+  COMPETITIVE_PROGRAMMING: "COMPETITIVE_PROGRAMMING",
 } as const;
 
 export type Domain = (typeof domain)[keyof typeof domain];
