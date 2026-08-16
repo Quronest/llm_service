@@ -5,18 +5,25 @@ import { groupDetailsPrompt, assistantPrompt } from "../prompts";
 
 interface AssistantChainParams {
   userPrompt: string;
-  chatContext?: string;
+  chatContexts?: string;
   userContext?: string;
+  taskContexts?: string;
 }
 
 export const createAssistantStream = async (params: AssistantChainParams) => {
-  const { userPrompt, chatContext = "", userContext = "" } = params;
+  const {
+    userPrompt,
+    chatContexts = "",
+    userContext = "",
+    taskContexts = "",
+  } = params;
 
   const SYSTEM_PROMPT = `
 ${assistantPrompt}
 ${groupDetailsPrompt} 
 {userContext}
-{chatContext}
+{taskContexts}
+{chatContexts}
 `;
 
   const promptTemplate = ChatPromptTemplate.fromMessages([
@@ -30,7 +37,8 @@ ${groupDetailsPrompt}
 
   return await chain.stream({
     userPrompt,
-    chatContext,
+    chatContexts,
     userContext,
+    taskContexts,
   });
 };

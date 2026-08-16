@@ -1,13 +1,15 @@
-import { response, type Request, type Response } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { createModuleLogger } from "../utils/logger";
-import { validateZodSchema } from "../utils/validateZodSchema";
-import { assistantchatContextValidationSchema } from "../schemas/assistant.schema";
+import type { Request, Response } from "express";
+
 import { createAssistantStream } from "../chains/assistant.chain";
 import {
   generateChatSummary,
   generateChatTitle,
 } from "../chains/metadata.chain";
+import { StreamFlag } from "../enums/streamFlag.enum";
+import { assistantchatContextValidationSchema } from "../schemas/assistant.schema";
+import { asyncHandler } from "../utils/asyncHandler";
+import { createModuleLogger } from "../utils/logger";
+import { validateZodSchema } from "../utils/validateZodSchema";
 
 const log = createModuleLogger(import.meta.url);
 
@@ -23,7 +25,8 @@ export const chatWithAssistantStream = asyncHandler(
       req.body,
     );
 
-    const { userPrompt, chatContext, userContext } = validatedData;
+    const { user_prompt, chat_contexts, user_context, task_contexts } =
+      validatedData;
 
     log.info("Received request for assistant stream chat");
 
@@ -35,24 +38,48 @@ export const chatWithAssistantStream = asyncHandler(
 
     res.flushHeaders();
 
-    const userContextString = JSON.stringify(userContext);
-
+    const userContextString = JSON.stringify(user_context);
+    const taskContextsString =
+      task_contexts && task_contexts.length > 0
+        ? JSON.stringify(task_contexts, null, 2)
+        : "";
+    const chatContextsString =
+      chat_contexts && chat_contexts.length > 0
+        ? JSON.stringify(chat_contexts, null, 2)
+        : "";
     let fullAssistantResponse = "";
 
     try {
+      // Send START event
+      const startPayload = JSON.stringify({
+        flag: StreamFlag.START,
+        data: { timestamp: new Date().toISOString() },
+      });
+      res.write(`data: ${startPayload}\n\n`);
+      if (typeof res.flush === "function") {
+        res.flush();
+      }
+
       const stream = await createAssistantStream({
-        userPrompt,
-        chatContext,
+        userPrompt: user_prompt,
+        chatContexts: chatContextsString,
         userContext: userContextString,
+        taskContexts: taskContextsString,
       });
 
       for await (const chunk of stream) {
-        const text = chunk.content;
+        const text =
+          typeof chunk.content === "string"
+            ? chunk.content
+            : String(chunk.content ?? "");
 
         if (text) {
           fullAssistantResponse += text;
 
-          const payload = JSON.stringify({ content: text });
+          const payload = JSON.stringify({
+            flag: StreamFlag.CHUNK,
+            data: { content: text },
+          });
           res.write(`data: ${payload}\n\n`);
 
           if (typeof res.flush === "function") {
@@ -60,18 +87,13 @@ export const chatWithAssistantStream = asyncHandler(
           }
         }
       }
-      res.write("data: [DONE]\n\n");
-      // Flush the DONE signal immediately so the client can finalize the UI
-      if (typeof res.flush === "function") {
-        res.flush();
-      }
 
       try {
         const [chatTitle, chatSummary] = await Promise.all([
-          generateChatTitle(userPrompt, fullAssistantResponse),
+          generateChatTitle(user_prompt, fullAssistantResponse),
           generateChatSummary(
-            chatContext ?? "",
-            userPrompt,
+            chatContextsString,
+            user_prompt,
             fullAssistantResponse,
           ),
         ]);
@@ -79,9 +101,11 @@ export const chatWithAssistantStream = asyncHandler(
         log.info(`Metadata generated - Title: "${chatTitle}"`);
 
         const metadataPayload = JSON.stringify({
-          type: "metadata",
-          title: chatTitle,
-          summary: chatSummary,
+          flag: StreamFlag.METADATA,
+          data: {
+            title: chatTitle,
+            summary: chatSummary,
+          },
         });
 
         res.write(`data: ${metadataPayload}\n\n`);
@@ -93,18 +117,30 @@ export const chatWithAssistantStream = asyncHandler(
         log.error(`Failed to generate title/summary: ${metadataError}`);
       }
 
+      // Send DONE event
+      const donePayload = JSON.stringify({
+        flag: StreamFlag.DONE,
+        data: null,
+      });
+      res.write(`data: ${donePayload}\n\n`);
+      if (typeof res.flush === "function") {
+        res.flush();
+      }
+
       res.end();
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      log.error(`Error streaming from Gemini: ${errorMessage}`);
+      log.error(`Error streaming: ${errorMessage}`);
 
       if (!res.headersSent) {
         throw error;
       } else {
-        res.write(
-          `data: ${JSON.stringify({ error: "Stream error occurred" })}\n\n`,
-        );
+        const errorPayload = JSON.stringify({
+          flag: StreamFlag.ERROR,
+          data: { error: "Stream error occurred" },
+        });
+        res.write(`data: ${errorPayload}\n\n`);
         res.end();
       }
     }
